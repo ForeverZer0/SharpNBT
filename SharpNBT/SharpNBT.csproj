@@ -4,6 +4,16 @@
         <TargetFramework>netstandard2.1</TargetFramework>
         <Title>SharpNBT</Title>
         <Authors>ForeverZer0</Authors>
+        <PackageLicenseExpression>MIT</PackageLicenseExpression>
+        <Description>A pure CLS-compliant C# implementation of the Named Binary Tag (NBT) format specification commonly used with Minecraft applications, allowing easy reading/writing streams and serialization to other formats.</Description>
+        <PackageProjectUrl>https://github.com/ForeverZer0/SharpNBT</PackageProjectUrl>
+        <RepositoryUrl>https://github.com/ForeverZer0/SharpNBT</RepositoryUrl>
+        <RepositoryType>git</RepositoryType>
+        <PackageIcon>icon.png</PackageIcon>
+        <PackageTags>nbt;named binary tag;minecraft;serialization</PackageTags>
     </PropertyGroup>
-
+    
+    <ItemGroup>
+        <None Include="icon.png" Pack="true" Visible="true" PackagePath=""/>
+    </ItemGroup>
 </Project>

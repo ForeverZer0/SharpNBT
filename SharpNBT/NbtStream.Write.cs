@@ -7,9 +7,6 @@ namespace SharpNBT
 {
     public partial class NbtStream
     {
-
-        private bool named = true;
-        
         public void WriteType(Tag tag)
         {
             BaseStream.WriteByte((byte) tag.Type);
@@ -18,7 +15,7 @@ namespace SharpNBT
         public void WriteByte(ByteTag tag)
         {
             BaseStream.WriteByte((byte) tag.Type);
-            if (named)
+            if (nameStack.Peek())
                 WriteString(tag.Name);
             BaseStream.WriteByte(tag.Value);
         }
@@ -26,7 +23,7 @@ namespace SharpNBT
         public void WriteShort(ShortTag tag)
         {
             BaseStream.WriteByte((byte) tag.Type);
-            if (named)
+            if (nameStack.Peek())
                 WriteString(tag.Name);
             WriteNumber(BitConverter.GetBytes(tag.Value));
         }
@@ -34,7 +31,7 @@ namespace SharpNBT
         public void WriteInt(IntTag tag)
         {
             BaseStream.WriteByte((byte) tag.Type);
-            if (named)
+            if (nameStack.Peek())
                 WriteString(tag.Name);
             WriteNumber(BitConverter.GetBytes(tag.Value));
         }
@@ -42,7 +39,7 @@ namespace SharpNBT
         public void WriteLong(LongTag tag)
         {
             BaseStream.WriteByte((byte) tag.Type);
-            if (named)
+            if (nameStack.Peek())
                 WriteString(tag.Name);
             WriteNumber(BitConverter.GetBytes(tag.Value));
         }
@@ -50,7 +47,7 @@ namespace SharpNBT
         public void WriteFloat(FloatTag tag)
         {
             BaseStream.WriteByte((byte) tag.Type);
-            if (named)
+            if (nameStack.Peek())
                 WriteString(tag.Name);
             WriteNumber(BitConverter.GetBytes(tag.Value));
         }
@@ -58,7 +55,7 @@ namespace SharpNBT
         public void WriteDouble(DoubleTag tag)
         {
             BaseStream.WriteByte((byte) tag.Type);
-            if (named)
+            if (nameStack.Peek())
                 WriteString(tag.Name);
             WriteNumber(BitConverter.GetBytes(tag.Value));
         }
@@ -66,7 +63,7 @@ namespace SharpNBT
         public void WriteString(StringTag tag)
         {
             BaseStream.WriteByte((byte) tag.Type);
-            if (named)
+            if (nameStack.Peek())
                 WriteString(tag.Name);
             WriteString(tag.Value);
         }
@@ -74,7 +71,7 @@ namespace SharpNBT
         public void WriteByteArray(ByteArrayTag tag)
         {
             BaseStream.WriteByte((byte) tag.Type);
-            if (named)
+            if (nameStack.Peek())
                 WriteString(tag.Name);
 
             WriteNumber(BitConverter.GetBytes(tag.Count));
@@ -86,7 +83,7 @@ namespace SharpNBT
             const int INT_SIZE = sizeof(int);
             
             BaseStream.WriteByte((byte) tag.Type);
-            if (named)
+            if (nameStack.Peek())
                 WriteString(tag.Name);
 
             WriteNumber(BitConverter.GetBytes(tag.Count));
@@ -121,7 +118,7 @@ namespace SharpNBT
             const int LONG_SIZE = sizeof(long);
             
             BaseStream.WriteByte((byte) tag.Type);
-            if (named)
+            if (nameStack.Peek())
                 WriteString(tag.Name);
 
             WriteNumber(BitConverter.GetBytes(tag.Count));
@@ -154,29 +151,31 @@ namespace SharpNBT
         public void WriteList(ListTag tag)
         {
             BaseStream.WriteByte((byte) tag.Type);
-            if (named)
+            if (nameStack.Peek())
                 WriteString(tag.Name);
 
             BaseStream.WriteByte((byte) tag.ChildType);
             WriteNumber(BitConverter.GetBytes(tag.Count));
 
-            named = false;
+            nameStack.Push(false);
             foreach (var child in tag)
                 WriteTag(child);
-            named = true;
+            nameStack.Pop();
         }
         
         public void WriteCompound(CompoundTag tag)
         {
             BaseStream.WriteByte((byte) tag.Type);
-            if (named)
+            if (nameStack.Peek())
                 WriteString(tag.Name);
 
+            nameStack.Push(true);
             foreach (var child in tag)
             {
                 child.Parent = tag;
                 WriteTag(child);
             }
+            nameStack.Pop();
             
             WriteEndTag();
         }

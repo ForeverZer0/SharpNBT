@@ -13,21 +13,15 @@ namespace SharpNBT
     public partial class NbtStream : Stream
     {
         protected readonly Stream BaseStream;
-        private readonly Stack<Tag> topLevel;
-        
-        // /// <summary>
-        // /// Opens a <see cref="NbtStream"/> on the specified <paramref name="path"/> with read/write access.
-        // /// </summary>
-        // /// <param name="path">The path to a file to open.</param>
-        // /// <param name="mode">
-        // /// A value that specified whether a file is created if one does not exist, and determines
-        // /// whether the contents of an existing file are retained or overwritten.
-        // /// </param>
-        // /// <returns>A <see cref="NbtStream"/> opened in the specified mode and path, with read/write access.</returns>
-        // public static NbtStream Open(string path, FileMode mode) => new(File.Open(path, mode));
-        //
-        // public static NbtStream Open(string path, FileMode mode, FileAccess access) => new(File.Open(path, mode, access));
+        private readonly Stack<bool> nameStack;
 
+        /// <summary>
+        /// Opens a <see cref="NbtStream"/> on the specified <paramref name="path"/> with read access.
+        /// <para/>
+        /// GZip compressed files will be detected and handled automatically.
+        /// </summary>
+        /// <param name="path">The path to a file to open.</param>
+        ///<returns>A <see cref="NbtStream"/> opened on the specified path with read access.</returns>
         public static NbtStream OpenRead(string path)
         {
             var compressed = false;
@@ -42,6 +36,14 @@ namespace SharpNBT
             return compressed ? new NbtStream(File.OpenRead(path), CompressionMode.Decompress) : new NbtStream(File.OpenRead(path));
         }
 
+        ///  <summary>
+        ///  Opens a <see cref="NbtStream"/> on the specified <paramref name="path"/> with write access.
+        ///  <para/>
+        ///  GZip compressed files will be detected and handled automatically.
+        ///  </summary>
+        ///  <param name="path">The path to a file to open.</param>
+        ///  <param name="level">Specify a compression strategy to emphasise either size or speed, or no compression at all.</param>
+        ///  <returns>A <see cref="NbtStream"/> opened on the specified path with write access.</returns>
         public static NbtStream OpenWrite(string path, CompressionLevel level = CompressionLevel.NoCompression)
         {
             if (level != CompressionLevel.NoCompression)
@@ -55,14 +57,11 @@ namespace SharpNBT
         public NbtStream(Stream stream, bool leaveOpen = false)
         {
             BaseStream = stream ?? throw new ArgumentNullException(nameof(stream));
-            topLevel = new Stack<Tag>();
+            nameStack = new Stack<bool>();
+            nameStack.Push(true);
         }
         
         public NbtStream(Stream stream, CompressionMode compression, bool leaveOpen = false) : this(new GZipStream(stream, compression, leaveOpen), leaveOpen)
-        {
-        }
-
-        public NbtStream([NotNull] byte[] buffer) : this(new MemoryStream(buffer), false)
         {
         }
 

@@ -15,7 +15,7 @@ namespace SharpNBT
         /// <returns>The deserialized <see cref="ByteTag"/> instance.</returns>
         public new ByteTag ReadByte()
         {
-            var name = named ? ReadPrefixedString() : null;
+            var name = nameStack.Peek() ? ReadPrefixedString() : null;
             return new ByteTag(name, (byte)BaseStream.ReadByte());
         }
 
@@ -26,7 +26,7 @@ namespace SharpNBT
         /// <returns>The deserialized <see cref="ShortTag"/> instance.</returns>
         public ShortTag ReadShort()
         {
-            var name = named ? ReadPrefixedString() : null;
+            var name = nameStack.Peek() ? ReadPrefixedString() : null;
             return new ShortTag(name, BitConverter.ToInt16(ReadNumber(sizeof(short))));
         }
 
@@ -37,7 +37,7 @@ namespace SharpNBT
         /// <returns>The deserialized <see cref="IntTag"/> instance.</returns>
         public IntTag ReadInt()
         {
-            var name = named ? ReadPrefixedString() : null;
+            var name = nameStack.Peek() ? ReadPrefixedString() : null;
             return new IntTag(name, BitConverter.ToInt32(ReadNumber(sizeof(int))));
         }
         
@@ -48,7 +48,7 @@ namespace SharpNBT
         /// <returns>The deserialized <see cref="LongTag"/> instance.</returns>
         public LongTag ReadLong()
         {
-            var name = named ? ReadPrefixedString() : null;
+            var name = nameStack.Peek() ? ReadPrefixedString() : null;
             return new LongTag(name, BitConverter.ToInt64(ReadNumber(sizeof(long))));
         }
 
@@ -59,7 +59,7 @@ namespace SharpNBT
         /// <returns>The deserialized <see cref="FloatTag"/> instance.</returns>
         public FloatTag ReadFloat()
         {
-            var name = named ? ReadPrefixedString() : null;
+            var name = nameStack.Peek() ? ReadPrefixedString() : null;
             return new FloatTag(name, BitConverter.ToSingle(ReadNumber(sizeof(float))));
         }
 
@@ -70,7 +70,7 @@ namespace SharpNBT
         /// <returns>The deserialized <see cref="DoubleTag"/> instance.</returns>
         public DoubleTag ReadDouble()
         {
-            var name = named ? ReadPrefixedString() : null;
+            var name = nameStack.Peek() ? ReadPrefixedString() : null;
             return new DoubleTag( name, BitConverter.ToDouble(ReadNumber(sizeof(double))));
         }
 
@@ -81,7 +81,7 @@ namespace SharpNBT
         /// <returns>The deserialized <see cref="StringTag"/> instance.</returns>
         public StringTag ReadString()
         {
-            var name = named ? ReadPrefixedString() : null;
+            var name = nameStack.Peek() ? ReadPrefixedString() : null;
             var value = ReadPrefixedString();
             return new StringTag(name, value);
         }
@@ -93,7 +93,7 @@ namespace SharpNBT
         /// <returns>The deserialized <see cref="ByteArrayTag"/> instance.</returns>
         public ByteArrayTag ReadByteArray()
         {
-            var name = named ? ReadPrefixedString() : null;
+            var name = nameStack.Peek() ? ReadPrefixedString() : null;
             var count = BitConverter.ToInt32(ReadNumber(sizeof(int)));
             var buffer = new byte[count];
             BaseStream.Read(buffer, 0, count);
@@ -109,7 +109,7 @@ namespace SharpNBT
         {
             const int INT_SIZE = sizeof(int);
             
-            var name = named ? ReadPrefixedString() : null;
+            var name = nameStack.Peek() ? ReadPrefixedString() : null;
             var count = BitConverter.ToInt32(ReadNumber(sizeof(int)));
             var buffer = new byte[count * INT_SIZE];
             BaseStream.Read(buffer, 0, count * INT_SIZE);
@@ -143,7 +143,7 @@ namespace SharpNBT
         {
             const int LONG_SIZE = sizeof(long);
             
-            var name = named ? ReadPrefixedString() : null;
+            var name = nameStack.Peek() ? ReadPrefixedString() : null;
             var count = BitConverter.ToInt32(ReadNumber(sizeof(int)));
             var buffer = new byte[count * LONG_SIZE];
             BaseStream.Read(buffer, 0, count * LONG_SIZE);
@@ -177,19 +177,18 @@ namespace SharpNBT
         /// <returns>The deserialized <see cref="ListTag"/> instance.</returns>
         public ListTag ReadList()
         {
-            var name = named ? ReadPrefixedString() : null;
+            var name = nameStack.Peek() ? ReadPrefixedString() : null;
             var childType = ReadType();
             var count = BitConverter.ToInt32(ReadNumber(sizeof(int)));
             var list = new ListTag(name, childType);
 
-            var previous = named;
-            named = false;
+            nameStack.Push(false);
             while (count-- > 0)
             {
                 list.Add(ReadTag(childType));
             }
-            named = previous;
-
+            nameStack.Pop();
+            
             return list;
         }
 
@@ -200,10 +199,9 @@ namespace SharpNBT
         /// <returns>The deserialized <see cref="CompoundTag"/> instance.</returns>
         public CompoundTag ReadCompound()
         {
-            var name = named ? ReadPrefixedString() : null;
+            var name = nameStack.Peek() ? ReadPrefixedString() : null;
             var compound = new CompoundTag(name);
-            var previous = named;
-            named = true;
+            nameStack.Push(true);
             while (true)
             {
                 var type = ReadType();
@@ -211,8 +209,7 @@ namespace SharpNBT
                     break;
                 compound.Add(ReadTag(type));
             }
-
-            named = previous;
+            nameStack.Pop();
 
             return compound;
         }
