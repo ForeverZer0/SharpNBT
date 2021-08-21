@@ -1,0 +1,9 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>netstandard2.1</TargetFramework>
+        <Title>SharpNBT</Title>
+        <Authors>ForeverZer0</Authors>
+    </PropertyGroup>
+
+</Project>
