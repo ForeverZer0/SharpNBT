@@ -16,19 +16,20 @@ namespace SharpNBT
         /// <param name="n">The value to convert.</param>
         /// <returns>An array of bytes representing the value in big-endian format.</returns>
         /// <remarks>The endianness of the host machine is accounted for.</remarks>
-        internal static byte[] GetBytes(this short n) => BitConverter.GetBytes(BitConverter.IsLittleEndian ? SwapEndian(n) : n);
+        public static byte[] BigEndianBytes(this short n) => BitConverter.GetBytes(BitConverter.IsLittleEndian ? SwapEndian(n) : n);
 
-        /// <inheritdoc cref="GetBytes(short)"/>
-        internal static byte[] GetBytes(this int n) => BitConverter.GetBytes(BitConverter.IsLittleEndian ? SwapEndian(n) : n);
+        /// <inheritdoc cref="BigEndianBytes(short)"/>
+        public static byte[] BigEndianBytes(this int n) => BitConverter.GetBytes(BitConverter.IsLittleEndian ? SwapEndian(n) : n);
         
-        /// <inheritdoc cref="GetBytes(short)"/>
-        internal static byte[] GetBytes(this long n) => BitConverter.GetBytes(BitConverter.IsLittleEndian ? SwapEndian(n) : n);
+        /// <inheritdoc cref="BigEndianBytes(short)"/>
+        public static byte[] BigEndianBytes(this long n) => BitConverter.GetBytes(BitConverter.IsLittleEndian ? SwapEndian(n) : n);
         
-        /// <inheritdoc cref="GetBytes(short)"/>
-        internal static byte[] GetBytes(this ushort n) => BitConverter.GetBytes(BitConverter.IsLittleEndian ? SwapEndian(n) : n);
+        /// <inheritdoc cref="BigEndianBytes(short)"/>
+        [CLSCompliant(false)]
+        internal static byte[] BigEndianBytes(this ushort n) => BitConverter.GetBytes(BitConverter.IsLittleEndian ? SwapEndian(n) : n);
 
-        /// <inheritdoc cref="GetBytes(short)"/>
-        internal static byte[] GetBytes(this float n)
+        /// <inheritdoc cref="BigEndianBytes(short)"/>
+        internal static byte[] BigEndianBytes(this float n)
         {
             var bytes = BitConverter.GetBytes(n);
             if (BitConverter.IsLittleEndian)
@@ -36,8 +37,8 @@ namespace SharpNBT
             return bytes;
         }
 
-        /// <inheritdoc cref="GetBytes(short)"/>
-        internal static byte[] GetBytes(this double n)
+        /// <inheritdoc cref="BigEndianBytes"/>
+        internal static byte[] BigEndianBytes(this double n)
         {
             var bytes = BitConverter.GetBytes(n);
             if (BitConverter.IsLittleEndian)
@@ -57,6 +58,7 @@ namespace SharpNBT
         }
         
         /// <inheritdoc cref="SwapEndian(short)"/>
+        [CLSCompliant(false)]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static ushort SwapEndian(this ushort value)
         {
@@ -68,6 +70,7 @@ namespace SharpNBT
         public static int SwapEndian(this int value) => unchecked((int) SwapEndian(unchecked((uint)value)));
 
         /// <inheritdoc cref="SwapEndian(short)"/>
+        [CLSCompliant(false)]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static uint SwapEndian(this uint value) 
         {
@@ -76,6 +79,7 @@ namespace SharpNBT
         }
 
         /// <inheritdoc cref="SwapEndian(short)"/>
+        [CLSCompliant(false)]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static ulong SwapEndian(this ulong val)
         {

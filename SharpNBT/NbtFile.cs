@@ -60,7 +60,7 @@ namespace SharpNBT
         /// </summary>
         /// <param name="path">The path of the file to query.</param>
         /// <returns><see langword="true"/> if GZip compression was detected, otherwise <see langword="false"/>.</returns>
-        public static bool IsCompressed(string path)
+        public static bool IsCompressed([NotNull] string path)
         {
             using var str = File.OpenRead(path);
             return str.ReadByte() == 0x1F && str.ReadByte() == 0x8B;
@@ -72,7 +72,7 @@ namespace SharpNBT
         /// <param name="path">The path of the file to query write.</param>
         /// <returns>A <see cref="TagReader"/> instance for the file stream.</returns>
         /// <remarks>File compression will be automatically detected and used handled when necessary.</remarks>
-        public static TagReader OpenRead(string path)
+        public static TagReader OpenRead([NotNull] string path)
         {
             var compressed = IsCompressed(path);
             var stream = File.OpenRead(path);
@@ -85,7 +85,7 @@ namespace SharpNBT
         /// <param name="path">The path of the file to query write.</param>
         /// <param name="compression">A flag indicating the compression strategy that will be used, if any.</param>
         /// <returns>A <see cref="TagWriter"/> instance for the file stream.</returns>
-        public static TagWriter OpenWrite(string path, CompressionLevel compression = CompressionLevel.NoCompression)
+        public static TagWriter OpenWrite([NotNull] string path, CompressionLevel compression = CompressionLevel.NoCompression)
         {
             var stream = File.OpenWrite(path);
             if (compression == CompressionLevel.NoCompression)

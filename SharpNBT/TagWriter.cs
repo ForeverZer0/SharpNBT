@@ -70,7 +70,7 @@ namespace SharpNBT
         public virtual void WriteShort(ShortTag tag)
         {
             WriteTypeAndName(tag);
-            BaseStream.Write(tag.Value.GetBytes(), 0, sizeof(short));
+            BaseStream.Write(tag.Value.BigEndianBytes(), 0, sizeof(short));
         }
         
         /// <summary>
@@ -80,7 +80,7 @@ namespace SharpNBT
         public virtual void WriteInt(IntTag tag)
         {
             WriteTypeAndName(tag);
-            BaseStream.Write(tag.Value.GetBytes(), 0, sizeof(int));
+            BaseStream.Write(tag.Value.BigEndianBytes(), 0, sizeof(int));
         }
 
         /// <summary>
@@ -90,7 +90,7 @@ namespace SharpNBT
         public virtual void WriteLong(LongTag tag)
         {
             WriteTypeAndName(tag);
-            BaseStream.Write(tag.Value.GetBytes(), 0, sizeof(long));
+            BaseStream.Write(tag.Value.BigEndianBytes(), 0, sizeof(long));
         }
         
         /// <summary>
@@ -100,7 +100,7 @@ namespace SharpNBT
         public virtual void WriteFloat(FloatTag tag)
         {
             WriteTypeAndName(tag);
-            BaseStream.Write(tag.Value.GetBytes(), 0, sizeof(float));
+            BaseStream.Write(tag.Value.BigEndianBytes(), 0, sizeof(float));
         }
 
         /// <summary>
@@ -110,7 +110,7 @@ namespace SharpNBT
         public virtual void WriteDouble(DoubleTag tag)
         {
             WriteTypeAndName(tag);
-            BaseStream.Write(tag.Value.GetBytes(), 0, sizeof(double));
+            BaseStream.Write(tag.Value.BigEndianBytes(), 0, sizeof(double));
         }
         
         /// <summary>
@@ -130,7 +130,7 @@ namespace SharpNBT
         public virtual void WriteByteArray(ByteArrayTag tag)
         {
             WriteTypeAndName(tag);
-            BaseStream.Write(tag.Count.GetBytes(), 0, sizeof(int));
+            BaseStream.Write(tag.Count.BigEndianBytes(), 0, sizeof(int));
             BaseStream.Write(tag.ToArray(), 0, tag.Count);
         }
         
@@ -141,7 +141,7 @@ namespace SharpNBT
         public virtual void WriteIntArray(IntArrayTag tag)
         {
             WriteTypeAndName(tag);
-            BaseStream.Write(tag.Count.GetBytes(), 0, sizeof(int));
+            BaseStream.Write(tag.Count.BigEndianBytes(), 0, sizeof(int));
             
             var values = new Span<int>(tag.ToArray());
             if (BitConverter.IsLittleEndian)
@@ -161,7 +161,7 @@ namespace SharpNBT
         {
 
             WriteTypeAndName(tag);
-            BaseStream.Write(tag.Count.GetBytes(), 0, sizeof(int));
+            BaseStream.Write(tag.Count.BigEndianBytes(), 0, sizeof(int));
 
             var values = new Span<long>(tag.ToArray());
             if (BitConverter.IsLittleEndian)
@@ -181,7 +181,7 @@ namespace SharpNBT
         {
             WriteTypeAndName(tag);
             BaseStream.WriteByte((byte) tag.ChildType);
-            BaseStream.Write(tag.Count.GetBytes(), 0, sizeof(int));
+            BaseStream.Write(tag.Count.BigEndianBytes(), 0, sizeof(int));
             
             foreach (var child in tag)
                 WriteTag(child);
@@ -311,12 +311,12 @@ namespace SharpNBT
         {
             if (string.IsNullOrEmpty(value))
             {
-                BaseStream.Write(((ushort) 0).GetBytes(), 0, sizeof(ushort));
+                BaseStream.Write(((ushort) 0).BigEndianBytes(), 0, sizeof(ushort));
             }
             else
             {
                 var utf8 = Encoding.UTF8.GetBytes(value);
-                BaseStream.Write(((ushort) utf8.Length).GetBytes(), 0, sizeof(ushort));
+                BaseStream.Write(((ushort) utf8.Length).BigEndianBytes(), 0, sizeof(ushort));
                 BaseStream.Write(utf8, 0, utf8.Length);
             }
         }
