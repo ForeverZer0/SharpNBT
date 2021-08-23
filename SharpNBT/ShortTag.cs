@@ -1,4 +1,5 @@
 using System;
+using System.Runtime.Serialization;
 using JetBrains.Annotations;
 
 namespace SharpNBT
@@ -6,7 +7,7 @@ namespace SharpNBT
     /// <summary>
     /// A tag that contains a single 16-bit integer value.
     /// </summary>
-    [PublicAPI]
+    [PublicAPI][DataContract(Name = "short")]
     public class ShortTag : Tag<short>
     {
         /// <summary>

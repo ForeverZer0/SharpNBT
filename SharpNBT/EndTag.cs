@@ -1,4 +1,4 @@
-using System;
+using System.Runtime.Serialization;
 using System.Text;
 using JetBrains.Annotations;
 
@@ -7,7 +7,7 @@ namespace SharpNBT
     /// <summary>
     /// Represents the end of <see cref="CompoundTag"/>.
     /// </summary>
-    [PublicAPI]
+    [PublicAPI][DataContract(Name = "end")]
     public class EndTag : Tag
     {
         /// <summary>

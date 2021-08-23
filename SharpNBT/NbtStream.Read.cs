@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Text;
 using JetBrains.Annotations;
 
@@ -11,77 +12,105 @@ namespace SharpNBT
         /// <summary>
         /// Reads a <see cref="ByteTag"/> from the stream.
         /// </summary>
+        /// <param name="named">Flag indicating if this tag is named, only <see langowrd="false"/> when a tag is a direct child of a <see cref="ListTag"/>.</param>
         /// <remarks>It is assumed that the stream is positioned at the beginning of the tag payload.</remarks>
         /// <returns>The deserialized <see cref="ByteTag"/> instance.</returns>
-        public new ByteTag ReadByte()
+        public ByteTag ReadByte(bool named = true)
         {
-            var name = nameStack.Peek() ? ReadPrefixedString() : null;
+            var name = named ? ReadPrefixedString() : null;
             return new ByteTag(name, (byte)BaseStream.ReadByte());
         }
 
         /// <summary>
         /// Reads a <see cref="ShortTag"/> from the stream.
         /// </summary>
+        /// <param name="named">Flag indicating if this tag is named, only <see langowrd="false"/> when a tag is a direct child of a <see cref="ListTag"/>.</param>
         /// <remarks>It is assumed that the stream is positioned at the beginning of the tag payload.</remarks>
         /// <returns>The deserialized <see cref="ShortTag"/> instance.</returns>
-        public ShortTag ReadShort()
+        public ShortTag ReadShort(bool named = true)
         {
-            var name = nameStack.Peek() ? ReadPrefixedString() : null;
-            return new ShortTag(name, BitConverter.ToInt16(ReadNumber(sizeof(short))));
+            var name = named ? ReadPrefixedString() : null;
+            
+            Span<byte> buffer = stackalloc byte[2];
+            BaseStream.Read(buffer);
+            var value = BitConverter.ToInt16(buffer);
+  
+            return new ShortTag(name, BitConverter.IsLittleEndian ? value.SwapEndian() : value);
         }
 
         /// <summary>
         /// Reads a <see cref="IntTag"/> from the stream.
         /// </summary>
+        /// <param name="named">Flag indicating if this tag is named, only <see langowrd="false"/> when a tag is a direct child of a <see cref="ListTag"/>.</param>
         /// <remarks>It is assumed that the stream is positioned at the beginning of the tag payload.</remarks>
         /// <returns>The deserialized <see cref="IntTag"/> instance.</returns>
-        public IntTag ReadInt()
+        public IntTag ReadInt(bool named = true)
         {
-            var name = nameStack.Peek() ? ReadPrefixedString() : null;
-            return new IntTag(name, BitConverter.ToInt32(ReadNumber(sizeof(int))));
+            var name = named ? ReadPrefixedString() : null;
+            return new IntTag(name, ReadInt32());
         }
         
         /// <summary>
         /// Reads a <see cref="LongTag"/> from the stream.
         /// </summary>
+        /// <param name="named">Flag indicating if this tag is named, only <see langowrd="false"/> when a tag is a direct child of a <see cref="ListTag"/>.</param>
         /// <remarks>It is assumed that the stream is positioned at the beginning of the tag payload.</remarks>
         /// <returns>The deserialized <see cref="LongTag"/> instance.</returns>
-        public LongTag ReadLong()
+        public LongTag ReadLong(bool named = true)
         {
-            var name = nameStack.Peek() ? ReadPrefixedString() : null;
-            return new LongTag(name, BitConverter.ToInt64(ReadNumber(sizeof(long))));
+            var name = named ? ReadPrefixedString() : null;
+            
+            Span<byte> buffer = stackalloc byte[8];
+            BaseStream.Read(buffer);
+            var value = BitConverter.ToInt64(buffer);
+            
+            return new LongTag(name, BitConverter.IsLittleEndian ? value.SwapEndian() : value);
         }
 
         /// <summary>
         /// Reads a <see cref="FloatTag"/> from the stream.
         /// </summary>
+        /// <param name="named">Flag indicating if this tag is named, only <see langowrd="false"/> when a tag is a direct child of a <see cref="ListTag"/>.</param>
         /// <remarks>It is assumed that the stream is positioned at the beginning of the tag payload.</remarks>
         /// <returns>The deserialized <see cref="FloatTag"/> instance.</returns>
-        public FloatTag ReadFloat()
+        public FloatTag ReadFloat(bool named = true)
         {
-            var name = nameStack.Peek() ? ReadPrefixedString() : null;
-            return new FloatTag(name, BitConverter.ToSingle(ReadNumber(sizeof(float))));
+            var name = named ? ReadPrefixedString() : null;
+            
+            var buffer = new byte[sizeof(float)];
+            BaseStream.Read(buffer, 0, sizeof(float));
+            if (BitConverter.IsLittleEndian)
+                Array.Reverse(buffer);
+            
+            return new FloatTag( name, BitConverter.ToSingle(buffer));
         }
 
         /// <summary>
         /// Reads a <see cref="DoubleTag"/> from the stream.
         /// </summary>
+        /// <param name="named">Flag indicating if this tag is named, only <see langowrd="false"/> when a tag is a direct child of a <see cref="ListTag"/>.</param>
         /// <remarks>It is assumed that the stream is positioned at the beginning of the tag payload.</remarks>
         /// <returns>The deserialized <see cref="DoubleTag"/> instance.</returns>
-        public DoubleTag ReadDouble()
+        public DoubleTag ReadDouble(bool named = true)
         {
-            var name = nameStack.Peek() ? ReadPrefixedString() : null;
-            return new DoubleTag( name, BitConverter.ToDouble(ReadNumber(sizeof(double))));
+            var name = named ? ReadPrefixedString() : null;
+            var buffer = new byte[sizeof(double)];
+            BaseStream.Read(buffer, 0, sizeof(double));
+            if (BitConverter.IsLittleEndian)
+                Array.Reverse(buffer);
+            
+            return new DoubleTag( name, BitConverter.ToDouble(buffer));
         }
 
         /// <summary>
         /// Reads a <see cref="StringTag"/> from the stream.
         /// </summary>
+        /// <param name="named">Flag indicating if this tag is named, only <see langowrd="false"/> when a tag is a direct child of a <see cref="ListTag"/>.</param>
         /// <remarks>It is assumed that the stream is positioned at the beginning of the tag payload.</remarks>
         /// <returns>The deserialized <see cref="StringTag"/> instance.</returns>
-        public StringTag ReadString()
+        public StringTag ReadString(bool named = true)
         {
-            var name = nameStack.Peek() ? ReadPrefixedString() : null;
+            var name = named ? ReadPrefixedString() : null;
             var value = ReadPrefixedString();
             return new StringTag(name, value);
         }
@@ -89,168 +118,159 @@ namespace SharpNBT
         /// <summary>
         /// Reads a <see cref="ByteArrayTag"/> from the stream.
         /// </summary>
+        /// <param name="named">Flag indicating if this tag is named, only <see langowrd="false"/> when a tag is a direct child of a <see cref="ListTag"/>.</param>
         /// <remarks>It is assumed that the stream is positioned at the beginning of the tag payload.</remarks>
         /// <returns>The deserialized <see cref="ByteArrayTag"/> instance.</returns>
-        public ByteArrayTag ReadByteArray()
+        public ByteArrayTag ReadByteArray(bool named = true)
         {
-            var name = nameStack.Peek() ? ReadPrefixedString() : null;
-            var count = BitConverter.ToInt32(ReadNumber(sizeof(int)));
+            var name = named ? ReadPrefixedString() : null;
+            var count = ReadInt32();
             var buffer = new byte[count];
             BaseStream.Read(buffer, 0, count);
-            return new ByteArrayTag(name, buffer);
+            return new ByteArrayTag(name, new ReadOnlySpan<byte>(buffer));
         }
         
         /// <summary>
         /// Reads a <see cref="IntArrayTag"/> from the stream.
         /// </summary>
+        /// <param name="named">Flag indicating if this tag is named, only <see langowrd="false"/> when a tag is a direct child of a <see cref="ListTag"/>.</param>
         /// <remarks>It is assumed that the stream is positioned at the beginning of the tag payload.</remarks>
         /// <returns>The deserialized <see cref="IntArrayTag"/> instance.</returns>
-        public IntArrayTag ReadIntArray()
+        public IntArrayTag ReadIntArray(bool named = true)
         {
             const int INT_SIZE = sizeof(int);
             
-            var name = nameStack.Peek() ? ReadPrefixedString() : null;
-            var count = BitConverter.ToInt32(ReadNumber(sizeof(int)));
+            var name = named ? ReadPrefixedString() : null;
+            var count = ReadInt32();
             var buffer = new byte[count * INT_SIZE];
             BaseStream.Read(buffer, 0, count * INT_SIZE);
 
-            var values = new int[count];
-            var offset = 0;
-
+            Span<int> values = MemoryMarshal.Cast<byte, int>(buffer);
             if (BitConverter.IsLittleEndian)
             {
-                for (var i = 0; i < count; i++, offset += INT_SIZE)
-                {
-                    Array.Reverse(buffer, offset, INT_SIZE);
-                    values[i] = BitConverter.ToInt32(buffer, offset);
-                }
+                for (var i = 0; i < count; i++)
+                    values[i] = values[i].SwapEndian();
             }
-            else
-            {
-                for (var i = 0; i < count; i++, offset += INT_SIZE)
-                    values[i] = BitConverter.ToInt32(buffer, offset);
-            }
-            
             return new IntArrayTag(name, values);
         }
         
         /// <summary>
         /// Reads a <see cref="LongArrayTag"/> from the stream.
         /// </summary>
+        /// <param name="named">Flag indicating if this tag is named, only <see langowrd="false"/> when a tag is a direct child of a <see cref="ListTag"/>.</param>
         /// <remarks>It is assumed that the stream is positioned at the beginning of the tag payload.</remarks>
         /// <returns>The deserialized <see cref="LongArrayTag"/> instance.</returns>
-        public LongArrayTag ReadLongArray()
+        public LongArrayTag ReadLongArray(bool named = true)
         {
             const int LONG_SIZE = sizeof(long);
             
-            var name = nameStack.Peek() ? ReadPrefixedString() : null;
-            var count = BitConverter.ToInt32(ReadNumber(sizeof(int)));
+            var name = named ? ReadPrefixedString() : null;
+            var count = ReadInt32();
             var buffer = new byte[count * LONG_SIZE];
             BaseStream.Read(buffer, 0, count * LONG_SIZE);
 
-            var values = new long[count];
-            var offset = 0;
-
+            Span<long> values = MemoryMarshal.Cast<byte, long>(buffer);
             if (BitConverter.IsLittleEndian)
             {
-                for (var i = 0; i < count; i++, offset += LONG_SIZE)
-                {
-                    Array.Reverse(buffer, offset, LONG_SIZE);
-                    values[i] = BitConverter.ToInt64(buffer, offset);
-                }
+                for (var i = 0; i < count; i++)
+                    values[i] = values[i].SwapEndian();
             }
-            else
-            {
-                for (var i = 0; i < count; i++, offset += LONG_SIZE)
-                {
-                    values[i] = BitConverter.ToInt64(buffer, offset);
-                }
-            }
-            
             return new LongArrayTag(name, values);
         }
         
         /// <summary>
         /// Reads a <see cref="ListTag"/> from the stream.
         /// </summary>
+        /// <param name="named">Flag indicating if this tag is named, only <see langowrd="false"/> when a tag is a direct child of a <see cref="ListTag"/>.</param>
         /// <remarks>It is assumed that the stream is positioned at the beginning of the tag payload.</remarks>
         /// <returns>The deserialized <see cref="ListTag"/> instance.</returns>
-        public ListTag ReadList()
+        public ListTag ReadList(bool named = true)
         {
-            var name = nameStack.Peek() ? ReadPrefixedString() : null;
+            var name = named ? ReadPrefixedString() : null;
             var childType = ReadType();
-            var count = BitConverter.ToInt32(ReadNumber(sizeof(int)));
+            var count = ReadInt32();
+            
+            if (childType == TagType.End && count > 0)
+                throw new FormatException("An EndTag is not a valid child type for a ListTag.");
+            
             var list = new ListTag(name, childType);
-
-            nameStack.Push(false);
             while (count-- > 0)
             {
-                list.Add(ReadTag(childType));
+                list.Add(ReadTag(childType, false));
             }
-            nameStack.Pop();
-            
+
             return list;
         }
 
         /// <summary>
         /// Reads a <see cref="CompoundTag"/> from the stream.
         /// </summary>
+        /// <param name="named">Flag indicating if this tag is named, only <see langowrd="false"/> when a tag is a direct child of a <see cref="ListTag"/>.</param>
         /// <remarks>It is assumed that the stream is positioned at the beginning of the tag payload.</remarks>
         /// <returns>The deserialized <see cref="CompoundTag"/> instance.</returns>
-        public CompoundTag ReadCompound()
+        public CompoundTag ReadCompound(bool named = true)
         {
-            var name = nameStack.Peek() ? ReadPrefixedString() : null;
+            var name = named ? ReadPrefixedString() : null;
             var compound = new CompoundTag(name);
-            nameStack.Push(true);
+
             while (true)
             {
                 var type = ReadType();
                 if (type == TagType.End)
                     break;
-                compound.Add(ReadTag(type));
+                
+                compound.Add(ReadTag(type, true));
             }
-            nameStack.Pop();
-
+            
             return compound;
         }
         
         /// <summary>
         /// Reads a <see cref="Tag"/> from the current position in the stream. 
         /// </summary>
-        /// <returns></returns>
-        public Tag ReadTag()
+        /// <param name="named">Flag indicating if this tag is named, only <see langowrd="false"/> when a tag is a direct child of a <see cref="ListTag"/>.</param>
+        /// <returns>The tag instance that was read from the stream.</returns>
+        public Tag ReadTag(bool named = true)
         {
             var type = ReadType();
-            return ReadTag(type);
+            return ReadTag(type, named);
         }
 
-        public T ReadTag<T>() where T : Tag
+        /// <summary>
+        /// Convenience method to read a tag and cast it with automatically.
+        /// </summary>
+        /// <param name="named">Flag indicating if this tag is named, only <see langowrd="false"/> when a tag is a direct child of a <see cref="ListTag"/>.</param>
+        /// <typeparam name="T">The tag type that is being read from the stream.</typeparam>
+        /// <returns>The tag instance that was read from the stream.</returns>
+        /// <remarks>This is typically only used when reading the top-level <see cref="CompoundTag"/> of a document where the type is already known.</remarks>
+        public T ReadTag<T>(bool named = true) where T : Tag
         {
-            return (T)ReadTag();
+            return (T)ReadTag(named);
         }
         
-        protected Tag ReadTag(TagType type)
+        [NotNull] 
+        protected Tag ReadTag(TagType type, bool named)
         {
             return type switch
             {
                 TagType.End => new EndTag(),
-                TagType.Byte => ReadByte(),
-                TagType.Short => ReadShort(),
-                TagType.Int => ReadInt(),
-                TagType.Long => ReadLong(),
-                TagType.Float => ReadFloat(),
-                TagType.Double => ReadDouble(),
-                TagType.ByteArray => ReadByteArray(),
-                TagType.String => ReadString(),
-                TagType.List => ReadList(),
-                TagType.Compound => ReadCompound(),
-                TagType.IntArray => ReadIntArray(),
-                TagType.LongArray => ReadLongArray(),
+                TagType.Byte => ReadByte(named),
+                TagType.Short => ReadShort(named),
+                TagType.Int => ReadInt(named),
+                TagType.Long => ReadLong(named),
+                TagType.Float => ReadFloat(named),
+                TagType.Double => ReadDouble(named),
+                TagType.ByteArray => ReadByteArray(named),
+                TagType.String => ReadString(named),
+                TagType.List => ReadList(named),
+                TagType.Compound => ReadCompound(named),
+                TagType.IntArray => ReadIntArray(named),
+                TagType.LongArray => ReadLongArray(named),
                 _ => throw new ArgumentOutOfRangeException(nameof(type), type, null)
             };
         }
         
-        public TagType ReadType()
+        private TagType ReadType()
         {
             try
             {
@@ -267,9 +287,14 @@ namespace SharpNBT
         /// </summary>
         /// <returns>The string instance, or <see langword="null"/> if a length of <c>0</c> was specified.</returns>
         [CanBeNull]
-        protected string ReadPrefixedString()
+        private string ReadPrefixedString()
         {
-            var len = BitConverter.ToUInt16(ReadNumber(sizeof(ushort)));
+            Span<byte> lenBuffer = stackalloc byte[2];
+            BaseStream.Read(lenBuffer);
+            var len = BitConverter.ToUInt16(lenBuffer);
+            if (BitConverter.IsLittleEndian)
+                len = len.SwapEndian();
+            
             if (len == 0)
                 return null;
             
@@ -278,20 +303,14 @@ namespace SharpNBT
             return Encoding.UTF8.GetString(buffer);
         }
 
-        /// <summary>
-        /// Reads <paramref name="count"/> bytes from the stream, reversing them if necessary to ensure proper endian format.
-        /// </summary>
-        /// <param name="count">The number of bytes to read.</param>
-        /// <returns>An array of bytes that represent the number.</returns>
-        [NotNull]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        protected byte[] ReadNumber(int count)
+        private int ReadInt32()
         {
-            var buffer = new byte[count];
-            BaseStream.Read(buffer, 0, buffer.Length);
-            if (BitConverter.IsLittleEndian)
-                Array.Reverse(buffer);
-            return buffer;
+            Span<byte> buffer = stackalloc byte[4];
+            BaseStream.Read(buffer);
+            var value = BitConverter.ToInt32(buffer);
+            return BitConverter.IsLittleEndian ? value.SwapEndian() : value;
         }
+
     }
 }

@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Runtime.Serialization;
 using System.Text;
 using JetBrains.Annotations;
 
@@ -10,13 +11,14 @@ namespace SharpNBT
     /// <remarks>
     /// All child tags <b>must</b> be have the same <see cref="Tag.Type"/> value, and their <see cref="Tag.Name"/> value will be omitted during serialization.
     /// </remarks>
-    [PublicAPI]
-    public class ListTag : EnumerableTag<Tag>
+    [PublicAPI][DataContract(Name = "list")]
+    public class ListTag : TagContainer
     {
         /// <summary>
         /// Gets the NBT type of this tag's children.
         /// </summary>
-        public TagType ChildType { get; }
+        [DataMember(IsRequired = true, Name = "child_type", Order = 2)]
+        public TagType ChildType { get; private set; }
 
         /// <summary>
         /// Creates a new instance of the <see cref="ListTag"/> class.
@@ -44,9 +46,10 @@ namespace SharpNBT
         public override string ToString()
         {
             var word = Count == 1 ? "entry" : "entries";
-            return $"TAG_Compound({PrettyName}): [{Count} {word}]";
+            return $"TAG_List({PrettyName}): [{Count} {word}]";
         }
         
+        /// <inheritdoc cref="Tag.PrettyPrinted(StringBuilder,int,string)"/>
         protected internal override void PrettyPrinted(StringBuilder buffer, int level, string indent)
         {
             var space = new StringBuilder();

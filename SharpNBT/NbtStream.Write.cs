@@ -1,193 +1,196 @@
 using System;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Text;
+using JetBrains.Annotations;
 
 namespace SharpNBT
 {
     public partial class NbtStream
     {
-        public void WriteType(Tag tag)
+        /// <summary>
+        /// Writes a <see cref="ByteTag"/> to the stream.
+        /// </summary>
+        /// <param name="tag">The <see cref="ByteTag"/> instance to write.</param>
+        public virtual void WriteByte(ByteTag tag)
         {
-            BaseStream.WriteByte((byte) tag.Type);
-        }
-
-        public void WriteByte(ByteTag tag)
-        {
-            BaseStream.WriteByte((byte) tag.Type);
-            if (nameStack.Peek())
-                WriteString(tag.Name);
+            WriteTypeAndName(tag);
             BaseStream.WriteByte(tag.Value);
         }
 
-        public void WriteShort(ShortTag tag)
+        /// <summary>
+        /// Writes a <see cref="ShortTag"/> to the stream.
+        /// </summary>
+        /// <param name="tag">The <see cref="ShortTag"/> instance to write.</param>
+        public virtual void WriteShort(ShortTag tag)
         {
-            BaseStream.WriteByte((byte) tag.Type);
-            if (nameStack.Peek())
-                WriteString(tag.Name);
-            WriteNumber(BitConverter.GetBytes(tag.Value));
+            WriteTypeAndName(tag);
+            BaseStream.Write(tag.Value.GetBytes(), 0, sizeof(short));
         }
 
-        public void WriteInt(IntTag tag)
+        /// <summary>
+        /// Writes a <see cref="IntTag"/> to the stream.
+        /// </summary>
+        /// <param name="tag">The <see cref="IntTag"/> instance to write.</param>
+        public virtual void WriteInt(IntTag tag)
         {
-            BaseStream.WriteByte((byte) tag.Type);
-            if (nameStack.Peek())
-                WriteString(tag.Name);
-            WriteNumber(BitConverter.GetBytes(tag.Value));
+            WriteTypeAndName(tag);
+            BaseStream.Write(tag.Value.GetBytes(), 0, sizeof(int));
         }
 
-        public void WriteLong(LongTag tag)
+        /// <summary>
+        /// Writes a <see cref="LongTag"/> to the stream.
+        /// </summary>
+        /// <param name="tag">The <see cref="LongTag"/> instance to write.</param>
+        public virtual void WriteLong(LongTag tag)
         {
-            BaseStream.WriteByte((byte) tag.Type);
-            if (nameStack.Peek())
-                WriteString(tag.Name);
-            WriteNumber(BitConverter.GetBytes(tag.Value));
+            WriteTypeAndName(tag);
+            BaseStream.Write(tag.Value.GetBytes(), 0, sizeof(long));
         }
 
-        public void WriteFloat(FloatTag tag)
+        /// <summary>
+        /// Writes a <see cref="FloatTag"/> to the stream.
+        /// </summary>
+        /// <param name="tag">The <see cref="FloatTag"/> instance to write.</param>
+        public virtual void WriteFloat(FloatTag tag)
         {
-            BaseStream.WriteByte((byte) tag.Type);
-            if (nameStack.Peek())
-                WriteString(tag.Name);
-            WriteNumber(BitConverter.GetBytes(tag.Value));
+            WriteTypeAndName(tag);
+            BaseStream.Write(tag.Value.GetBytes(), 0, sizeof(float));
         }
 
-        public void WriteDouble(DoubleTag tag)
+        /// <summary>
+        /// Writes a <see cref="DoubleTag"/> to the stream.
+        /// </summary>
+        /// <param name="tag">The <see cref="DoubleTag"/> instance to write.</param>
+        public virtual void WriteDouble(DoubleTag tag)
         {
-            BaseStream.WriteByte((byte) tag.Type);
-            if (nameStack.Peek())
-                WriteString(tag.Name);
-            WriteNumber(BitConverter.GetBytes(tag.Value));
+            WriteTypeAndName(tag);
+            BaseStream.Write(tag.Value.GetBytes(), 0, sizeof(double));
         }
 
-        public void WriteString(StringTag tag)
+        /// <summary>
+        /// Writes a <see cref="StringTag"/> to the stream.
+        /// </summary>
+        /// <param name="tag">The <see cref="StringTag"/> instance to write.</param>
+        public virtual void WriteString(StringTag tag)
         {
-            BaseStream.WriteByte((byte) tag.Type);
-            if (nameStack.Peek())
-                WriteString(tag.Name);
+            WriteTypeAndName(tag);
             WriteString(tag.Value);
         }
         
-        public void WriteByteArray(ByteArrayTag tag)
+        /// <summary>
+        /// Writes a <see cref="ByteArrayTag"/> to the stream.
+        /// </summary>
+        /// <param name="tag">The <see cref="ByteArrayTag"/> instance to write.</param>
+        public virtual void WriteByteArray(ByteArrayTag tag)
         {
-            BaseStream.WriteByte((byte) tag.Type);
-            if (nameStack.Peek())
-                WriteString(tag.Name);
-
-            WriteNumber(BitConverter.GetBytes(tag.Count));
+            WriteTypeAndName(tag);
+            BaseStream.Write(tag.Count.GetBytes(), 0, sizeof(int));
             BaseStream.Write(tag.ToArray(), 0, tag.Count);
         }
 
-        public void WriteIntArray(IntArrayTag tag)
+        /// <summary>
+        /// Writes a <see cref="IntArrayTag"/> to the stream.
+        /// </summary>
+        /// <param name="tag">The <see cref="IntArrayTag"/> instance to write.</param>
+        public virtual void WriteIntArray(IntArrayTag tag)
         {
-            const int INT_SIZE = sizeof(int);
+            WriteTypeAndName(tag);
+            BaseStream.Write(tag.Count.GetBytes(), 0, sizeof(int));
             
-            BaseStream.WriteByte((byte) tag.Type);
-            if (nameStack.Peek())
-                WriteString(tag.Name);
-
-            WriteNumber(BitConverter.GetBytes(tag.Count));
-            var values = tag.ToArray();
-            var buffer = new byte[tag.Count * INT_SIZE];
-            byte[] bits;
-            
-            var offset = 0;
+            var values = new Span<int>(tag.ToArray());
             if (BitConverter.IsLittleEndian)
             {
-                for (var i = 0; i < tag.Count; i++, offset += INT_SIZE)
-                {
-                    bits = BitConverter.GetBytes(values[i]);
-                    Array.Reverse(bits, 0, INT_SIZE);
-                    bits.CopyTo(buffer, offset);
-                }   
+                for (var i = 0; i < values.Length; i++)
+                    values[i] = values[i].SwapEndian();
             }
-            else
-            {
-                for (var i = 0; i < tag.Count; i++, offset += INT_SIZE)
-                {
-                    bits = BitConverter.GetBytes(values[i]);
-                    bits.CopyTo(buffer, offset);
-                }
-            }
-
-            BaseStream.Write(buffer, 0, buffer.Length);
+            
+            BaseStream.Write(MemoryMarshal.AsBytes(values));
         }
 
-        public void WriteLongArray(LongArrayTag tag)
+        /// <summary>
+        /// Writes a <see cref="LongArrayTag"/> to the stream.
+        /// </summary>
+        /// <param name="tag">The <see cref="LongArrayTag"/> instance to write.</param>
+        public virtual void WriteLongArray(LongArrayTag tag)
         {
-            const int LONG_SIZE = sizeof(long);
-            
-            BaseStream.WriteByte((byte) tag.Type);
-            if (nameStack.Peek())
-                WriteString(tag.Name);
 
-            WriteNumber(BitConverter.GetBytes(tag.Count));
-            var values = tag.ToArray();
-            var buffer = new byte[tag.Count * LONG_SIZE];
-            byte[] bits;
-            
-            var offset = 0;
+            WriteTypeAndName(tag);
+            BaseStream.Write(tag.Count.GetBytes(), 0, sizeof(int));
+
+            var values = new Span<long>(tag.ToArray());
             if (BitConverter.IsLittleEndian)
             {
-                for (var i = 0; i < tag.Count; i++, offset += LONG_SIZE)
-                {
-                    bits = BitConverter.GetBytes(values[i]);
-                    Array.Reverse(bits, 0, LONG_SIZE);
-                    bits.CopyTo(buffer, offset);
-                }   
+                for (var i = 0; i < values.Length; i++)
+                    values[i] = values[i].SwapEndian();
             }
-            else
-            {
-                for (var i = 0; i < tag.Count; i++, offset += LONG_SIZE)
-                {
-                    bits = BitConverter.GetBytes(values[i]);
-                    bits.CopyTo(buffer, offset);
-                }
-            }
-
-            BaseStream.Write(buffer, 0, buffer.Length);
+            
+            BaseStream.Write(MemoryMarshal.AsBytes(values));
         }
 
-        public void WriteList(ListTag tag)
+        /// <summary>
+        /// Writes a <see cref="ListTag"/> to the stream.
+        /// </summary>
+        /// <param name="tag">The <see cref="ListTag"/> instance to write.</param>
+        public virtual void WriteList(ListTag tag)
         {
-            BaseStream.WriteByte((byte) tag.Type);
-            if (nameStack.Peek())
-                WriteString(tag.Name);
-
+            WriteTypeAndName(tag);
             BaseStream.WriteByte((byte) tag.ChildType);
-            WriteNumber(BitConverter.GetBytes(tag.Count));
+            BaseStream.Write(tag.Count.GetBytes(), 0, sizeof(int));
 
-            nameStack.Push(false);
+            includeName.Push(false);
             foreach (var child in tag)
+            {
+                if (child.Name != null)
+                    throw new FormatException("Tags that are children of a ListTag may not have named.");
+                if (child.Type != tag.ChildType)
+                    throw new FormatException("A ListTag may only contain a single type.");
+                
                 WriteTag(child);
-            nameStack.Pop();
+            }
+            includeName.Pop();
         }
         
-        public void WriteCompound(CompoundTag tag)
+        /// <summary>
+        /// Writes a <see cref="CompoundTag"/> to the stream.
+        /// </summary>
+        /// <param name="tag">The <see cref="CompoundTag"/> instance to write.</param>
+        public virtual void WriteCompound(CompoundTag tag)
         {
-            BaseStream.WriteByte((byte) tag.Type);
-            if (nameStack.Peek())
-                WriteString(tag.Name);
+            WriteTypeAndName(tag);
 
-            nameStack.Push(true);
+            includeName.Push(true);
             foreach (var child in tag)
             {
+                if (tag.Type == TagType.End)
+                    break;
+                
                 child.Parent = tag;
                 WriteTag(child);
             }
-            nameStack.Pop();
             
-            WriteEndTag();
+            BaseStream.WriteByte((byte) TagType.End);
+            includeName.Pop();
         }
-        
-        public void WriteEndTag() => BaseStream.WriteByte((byte) TagType.End);
-        
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="tag"></param>
+        public virtual void WriteEndTag([CanBeNull] EndTag tag = null) => BaseStream.WriteByte(0); 
+
+        /// <summary>
+        /// Writes the given <see cref="Tag"/> to the stream.
+        /// </summary>
+        /// <param name="tag">The <see cref="Tag"/> instance to be written.</param>
+        /// <exception cref="ArgumentOutOfRangeException">Thrown when the tag type is unrecognized.</exception>
         public void WriteTag(Tag tag)
         {
             switch (tag.Type)
             {
                 case TagType.End: 
-                    WriteEndTag();
+                    WriteEndTag((EndTag) tag);
                     break;
                 case TagType.Byte:
                     WriteByte((ByteTag) tag);
@@ -231,24 +234,26 @@ namespace SharpNBT
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private void WriteNumber(byte[] data)
+        private void WriteTypeAndName(Tag tag)
         {
-            if (BitConverter.IsLittleEndian)
-                Array.Reverse(data);
-            BaseStream.Write(data, 0, data.Length);
-        }
+            if (tag.Parent is ListTag)
+                return;
 
+            BaseStream.WriteByte((byte) tag.Type);
+            WriteString(tag.Name);
+        }
+        
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void WriteString(string value)
         {
             if (string.IsNullOrEmpty(value))
             {
-                WriteNumber(BitConverter.GetBytes((ushort) 0));
+                BaseStream.Write(((ushort) 0).GetBytes(), 0, sizeof(ushort));
             }
             else
             {
                 var utf8 = Encoding.UTF8.GetBytes(value);
-                WriteNumber(BitConverter.GetBytes((ushort) utf8.Length));
+                BaseStream.Write(((ushort) utf8.Length).GetBytes(), 0, sizeof(ushort));
                 BaseStream.Write(utf8, 0, utf8.Length);
             }
         }

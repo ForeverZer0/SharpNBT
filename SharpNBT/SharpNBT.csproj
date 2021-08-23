@@ -14,6 +14,6 @@
     </PropertyGroup>
     
     <ItemGroup>
-        <None Include="icon.png" Pack="true" Visible="true" PackagePath=""/>
+        <None Include="icon.png" Pack="true" Visible="true" PackagePath="" />
     </ItemGroup>
 </Project>

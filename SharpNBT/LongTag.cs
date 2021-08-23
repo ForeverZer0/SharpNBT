@@ -1,4 +1,5 @@
 using System;
+using System.Runtime.Serialization;
 using JetBrains.Annotations;
 
 namespace SharpNBT
@@ -6,7 +7,7 @@ namespace SharpNBT
     /// <summary>
     /// A tag that contains a single 64-bit integer value.
     /// </summary>
-    [PublicAPI]
+    [PublicAPI][DataContract(Name = "long")]
     public class LongTag : Tag<long>
     {
         /// <summary>

@@ -1,4 +1,5 @@
 using System;
+using System.Runtime.Serialization;
 using JetBrains.Annotations;
 
 namespace SharpNBT
@@ -11,7 +12,7 @@ namespace SharpNBT
     /// recommended to use the <see cref="SignedValue"/> property if your language supports a signed 8-bit value, otherwise simply ensure the bits are
     /// equivalent.
     /// </remarks>
-    [PublicAPI]
+    [PublicAPI][DataContract(Name = "byte")]
     public class ByteTag : Tag<byte>
     {
         /// <summary>

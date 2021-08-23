@@ -13,7 +13,8 @@ namespace SharpNBT
     public partial class NbtStream : Stream
     {
         protected readonly Stream BaseStream;
-        private readonly Stack<bool> nameStack;
+        private readonly Stack<bool> includeName;
+        private readonly bool leaveOpen;
 
         /// <summary>
         /// Opens a <see cref="NbtStream"/> on the specified <paramref name="path"/> with read access.
@@ -36,14 +37,16 @@ namespace SharpNBT
             return compressed ? new NbtStream(File.OpenRead(path), CompressionMode.Decompress) : new NbtStream(File.OpenRead(path));
         }
 
-        ///  <summary>
-        ///  Opens a <see cref="NbtStream"/> on the specified <paramref name="path"/> with write access.
-        ///  <para/>
-        ///  GZip compressed files will be detected and handled automatically.
-        ///  </summary>
-        ///  <param name="path">The path to a file to open.</param>
-        ///  <param name="level">Specify a compression strategy to emphasise either size or speed, or no compression at all.</param>
-        ///  <returns>A <see cref="NbtStream"/> opened on the specified path with write access.</returns>
+        /// <summary>
+        /// Opens a <see cref="NbtStream"/> on the specified <paramref name="path"/> with write access.
+        /// <para/>
+        /// GZip compressed files will be detected and handled automatically.
+        /// </summary>
+        /// <param name="path">The path to a file to open.</param>
+        /// <param name="level">Specify a compression strategy to emphasise either size or speed, or no compression at all.</param>
+        /// <returns>A <see cref="NbtStream"/> opened on the specified path with write access.</returns>
+        /// <remarks>Note that if the data is very small, compressing it will actually result in making it larger than when uncompressed due to additional
+        /// information required by the GZip spec also being written.</remarks>
         public static NbtStream OpenWrite(string path, CompressionLevel level = CompressionLevel.NoCompression)
         {
             if (level != CompressionLevel.NoCompression)
@@ -56,13 +59,34 @@ namespace SharpNBT
         
         public NbtStream(Stream stream, bool leaveOpen = false)
         {
+            this.leaveOpen = leaveOpen;
             BaseStream = stream ?? throw new ArgumentNullException(nameof(stream));
-            nameStack = new Stack<bool>();
-            nameStack.Push(true);
+            includeName = new Stack<bool>();
+            includeName.Push(true);
         }
         
         public NbtStream(Stream stream, CompressionMode compression, bool leaveOpen = false) : this(new GZipStream(stream, compression, leaveOpen), leaveOpen)
         {
+        }
+
+        /// <summary>Closes the current stream and releases any resources (such as sockets and file handles) associated with the current stream. Instead of calling this method, ensure that the stream is properly disposed.</summary>
+        /// <footer><a href="https://docs.microsoft.com/en-us/dotnet/api/System.IO.Stream.Close?view=netstandard-2.1">`Stream.Close` on docs.microsoft.com</a></footer>
+        public override void Close()
+        {
+            if (!leaveOpen) 
+                BaseStream.Close();
+            base.Close();
+        }
+
+        /// <summary>Releases the unmanaged resources used by the <see cref="T:System.IO.Stream" /> and optionally releases the managed resources.</summary>
+        /// <param name="disposing">
+        /// <see langword="true" /> to release both managed and unmanaged resources; <see langword="false" /> to release only unmanaged resources.</param>
+        /// <footer><a href="https://docs.microsoft.com/en-us/dotnet/api/System.IO.Stream.Dispose?view=netstandard-2.1">`Stream.Dispose` on docs.microsoft.com</a></footer>
+        protected override void Dispose(bool disposing)
+        {
+            if (!leaveOpen)
+                BaseStream.Dispose();
+            base.Dispose(disposing);
         }
 
         /// <summary>Clears all buffers for this stream and causes any buffered data to be written to the underlying device.</summary>

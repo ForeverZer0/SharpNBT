@@ -1,17 +1,19 @@
 using System.Collections.Generic;
+using System.Runtime.Serialization;
 using System.Text;
 using JetBrains.Annotations;
 
 namespace SharpNBT
 {
     /// <summary>
-    /// Top-level tag that acts as a container for other <b>named</b> tags.
+    /// Top-level tag that acts as a container for other <b>named</b> tags. 
     /// </summary>
     /// <remarks>
-    /// This along with the <see cref="ListTag"/> class define the structure of the NBT format. Children are not order-dependent, nor is order guaranteed.
+    /// This along with the <see cref="ListTag"/> class define the structure of the NBT format. Children are not order-dependent, nor is order guaranteed. The
+    /// closing <see cref="EndTag"/> does not require to be explicitly added, it will be added automatically during serialization. 
     /// </remarks>
-    [PublicAPI]
-    public class CompoundTag : EnumerableTag<Tag>
+    [PublicAPI][DataContract(Name = "compound")]
+    public class CompoundTag :  TagContainer
     {
         /// <summary>
         /// Creates a new instance of the <see cref="CompoundTag"/> class.
@@ -45,10 +47,10 @@ namespace SharpNBT
         /// <param name="indent">The prefix that will be applied to each indent-level of nested nodes in the tree structure.</param>
         /// <returns>The pretty-printed string.</returns>
         [NotNull]
-        public string PrettyPrinted([NotNull] string indent = "    ")
+        public string PrettyPrinted([CanBeNull] string indent = "    ")
         {
             var buffer = new StringBuilder();
-            PrettyPrinted(buffer, 0, indent);
+            PrettyPrinted(buffer, 0, indent ?? string.Empty);
             return buffer.ToString();
         }
 
@@ -76,7 +78,8 @@ namespace SharpNBT
 
             return null;
         }
-        
+
+        /// <inheritdoc cref="Tag.PrettyPrinted(StringBuilder,int,string)"/>
         protected internal override void PrettyPrinted(StringBuilder buffer, int level, string indent)
         {
             var space = new StringBuilder();
