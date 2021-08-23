@@ -27,6 +27,8 @@ namespace SharpNBT
         /// <param name="childType">A constant describing the NBT type for children in this tag.</param>
         public ListTag([CanBeNull] string name, TagType childType) : base(TagType.List, name)
         {
+            RequiredType = childType;
+            NamedChildren = false;
             ChildType = childType;
         }
         
@@ -36,9 +38,8 @@ namespace SharpNBT
         /// <param name="name">The name of the tag, or <see langword="null"/> if tag has no name.</param>
         /// <param name="childType">A constant describing the NBT type for children in this tag.</param>
         /// <param name="children">A collection of values to include in this tag.</param>
-        public ListTag([CanBeNull] string name, TagType childType, [NotNull][ItemNotNull] IEnumerable<Tag> children) : base(TagType.List, name)
+        public ListTag([CanBeNull] string name, TagType childType, [NotNull][ItemNotNull] IEnumerable<Tag> children) : this(name, childType)
         {
-            ChildType = childType;
             AddRange(children);
         }
 

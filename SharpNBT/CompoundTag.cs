@@ -21,6 +21,8 @@ namespace SharpNBT
         /// <param name="name">The name of the tag, or <see langword="null"/> if tag has no name.</param>
         public CompoundTag([CanBeNull] string name) : base(TagType.Compound, name)
         {
+            NamedChildren = true;
+            RequiredType = null;
         }
         
         /// <summary>
@@ -28,8 +30,9 @@ namespace SharpNBT
         /// </summary>
         /// <param name="name">The name of the tag, or <see langword="null"/> if tag has no name.</param>
         /// <param name="values">A collection <see cref="Tag"/> objects that are children of this object.</param>
-        public CompoundTag([CanBeNull] string name, [NotNull] IEnumerable<Tag> values) : base(TagType.Compound, name, values)
+        public CompoundTag([CanBeNull] string name, [NotNull] IEnumerable<Tag> values) : this(name)
         {
+            AddRange(values);
         }
 
         /// <summary>Returns a string that represents the current object.</summary>

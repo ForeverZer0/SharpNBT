@@ -14,7 +14,7 @@ namespace SharpNBT
     /// Abstract base class that all NBT tags inherit from.
     /// </summary>
     [PublicAPI][DataContract][KnownType("GetKnownTypes")]
-    public abstract class Tag
+    public abstract class Tag : IEquatable<Tag>
     {
         private static IEnumerable<Type> GetKnownTypes()
         {
@@ -130,6 +130,48 @@ namespace SharpNBT
             stream.Flush();
             return Encoding.UTF8.GetString(stream.ToArray());
         }
+
+        /// <summary>Indicates whether the current object is equal to another object of the same type.</summary>
+        /// <param name="other">An object to compare with this object.</param>
+        /// <returns>
+        /// <see langword="true" /> if the current object is equal to the <paramref name="other" /> parameter; otherwise, <see langword="false" />.</returns>
+        /// <footer><a href="https://docs.microsoft.com/en-us/dotnet/api/System.IEquatable-1.Equals?view=netstandard-2.1">`IEquatable.Equals` on docs.microsoft.com</a></footer>
+        public bool Equals(Tag other)
+        {
+            if (ReferenceEquals(null, other)) return false;
+            if (ReferenceEquals(this, other)) return true;
+            return Type == other.Type && Name == other.Name;
+        }
+
+        /// <summary>Determines whether the specified object is equal to the current object.</summary>
+        /// <param name="obj">The object to compare with the current object.</param>
+        /// <returns>
+        /// <see langword="true" /> if the specified object  is equal to the current object; otherwise, <see langword="false" />.</returns>
+        /// <footer><a href="https://docs.microsoft.com/en-us/dotnet/api/System.Object.Equals?view=netstandard-2.1">`Object.Equals` on docs.microsoft.com</a></footer>
+        public override bool Equals(object obj)
+        {
+            if (ReferenceEquals(null, obj)) return false;
+            if (ReferenceEquals(this, obj)) return true;
+            if (obj.GetType() != this.GetType()) return false;
+            return Equals((Tag)obj);
+        }
+
+        /// <summary>Serves as the default hash function.</summary>
+        /// <returns>A hash code for the current object.</returns>
+        /// <footer><a href="https://docs.microsoft.com/en-us/dotnet/api/System.Object.GetHashCode?view=netstandard-2.1">`Object.GetHashCode` on docs.microsoft.com</a></footer>
+        public override int GetHashCode()
+        {
+            unchecked
+            {
+                // ReSharper disable NonReadonlyMemberInGetHashCode
+                return ((int)Type * 373) ^ (Name != null ? Name.GetHashCode() : 0);
+                // ReSharper restore NonReadonlyMemberInGetHashCode
+            }
+        }
+
+        public static bool operator ==(Tag left, Tag right) => Equals(left, right);
+
+        public static bool operator !=(Tag left, Tag right) => !Equals(left, right);
     }
     
     /// <summary>
@@ -137,7 +179,7 @@ namespace SharpNBT
     /// </summary>
     /// <typeparam name="T">The type of the value the tag represents.</typeparam>
     [PublicAPI][DataContract]
-    public abstract class Tag<T> : Tag
+    public abstract class Tag<T> : Tag, IEquatable<Tag<T>>
     {
         /// <summary>
         /// Gets or sets the value of the tag.
@@ -163,5 +205,47 @@ namespace SharpNBT
                 buffer.Append(indent);
             buffer.AppendLine(ToString());
         }
+
+        /// <summary>Indicates whether the current object is equal to another object of the same type.</summary>
+        /// <param name="other">An object to compare with this object.</param>
+        /// <returns>
+        /// <see langword="true" /> if the current object is equal to the <paramref name="other" /> parameter; otherwise, <see langword="false" />.</returns>
+        /// <footer><a href="https://docs.microsoft.com/en-us/dotnet/api/System.IEquatable-1.Equals?view=netstandard-2.1">`IEquatable.Equals` on docs.microsoft.com</a></footer>
+        public bool Equals(Tag<T> other)
+        {
+            if (ReferenceEquals(null, other)) return false;
+            if (ReferenceEquals(this, other)) return true;
+            return base.Equals(other) && EqualityComparer<T>.Default.Equals(Value, other.Value);
+        }
+
+        /// <summary>Determines whether the specified object is equal to the current object.</summary>
+        /// <param name="obj">The object to compare with the current object.</param>
+        /// <returns>
+        /// <see langword="true" /> if the specified object  is equal to the current object; otherwise, <see langword="false" />.</returns>
+        /// <footer><a href="https://docs.microsoft.com/en-us/dotnet/api/System.Object.Equals?view=netstandard-2.1">`Object.Equals` on docs.microsoft.com</a></footer>
+        public override bool Equals(object obj)
+        {
+            if (ReferenceEquals(null, obj)) return false;
+            if (ReferenceEquals(this, obj)) return true;
+            if (obj.GetType() != GetType()) return false;
+            return Equals((Tag<T>)obj);
+        }
+
+        /// <summary>Serves as the default hash function.</summary>
+        /// <returns>A hash code for the current object.</returns>
+        /// <footer><a href="https://docs.microsoft.com/en-us/dotnet/api/System.Object.GetHashCode?view=netstandard-2.1">`Object.GetHashCode` on docs.microsoft.com</a></footer>
+        public override int GetHashCode()
+        {
+            unchecked
+            {
+                // ReSharper disable NonReadonlyMemberInGetHashCode
+                return (base.GetHashCode() * 421) ^ EqualityComparer<T>.Default.GetHashCode(Value);
+                // ReSharper restore NonReadonlyMemberInGetHashCode
+            }
+        }
+
+        public static bool operator ==(Tag<T> left, Tag<T> right) => Equals(left, right);
+
+        public static bool operator !=(Tag<T> left, Tag<T> right) => !Equals(left, right);
     }
 }

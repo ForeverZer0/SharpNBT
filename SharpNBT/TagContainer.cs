@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using System.Runtime.Serialization;
 using JetBrains.Annotations;
 using SuppressMessageAttribute =  System.Diagnostics.CodeAnalysis.SuppressMessageAttribute;
@@ -10,8 +11,11 @@ namespace SharpNBT
     /// Base class for tags that contain a collection of other <see cref="Tag"/> objects and can be enumerated.
     /// </summary>
     [PublicAPI][DataContract]
-    public abstract class TagContainer : EnumerableTag<Tag> 
+    public abstract class TagContainer : EnumerableTag<Tag>
     {
+        protected bool NamedChildren;
+        protected TagType? RequiredType;
+
         /// <summary>
         /// Initializes a new instance of the <see cref="TagContainer"/>.
         /// </summary>
@@ -38,7 +42,7 @@ namespace SharpNBT
         [SuppressMessage("ReSharper", "AnnotationConflictInHierarchy")]
         public sealed override void Add(Tag item)
         {
-            base.Add(item ?? throw new ArgumentNullException(nameof(item)));
+            base.Add(AssertConventions(item));
             item.Parent = this;
         }
         
@@ -52,7 +56,7 @@ namespace SharpNBT
         [SuppressMessage("ReSharper", "AnnotationConflictInHierarchy")]
         public sealed override void Insert(int index, Tag item)
         {
-            base.Insert(index, item ?? throw new ArgumentNullException(nameof(item)));
+            base.Insert(index, AssertConventions(item));
             item.Parent = this;
         }
         
@@ -68,7 +72,7 @@ namespace SharpNBT
             get => base[index];
             set
             {
-                base[index] = value ?? throw new ArgumentNullException(nameof(value));
+                base[index] = AssertConventions(value);
                 value.Parent = this;
             }
         }
@@ -108,6 +112,31 @@ namespace SharpNBT
         {
             this[index].Parent = null;
             base.RemoveAt(index);
+        }
+
+        /// <summary>
+        /// Performs routine checks to ensure that the given <paramref name="tag"/> complies with the NBT standard for this collection type.
+        /// </summary>
+        /// <param name="tag">A <see cref="Tag"/> instance to validate.</param>
+        /// <returns>Returns the <paramref name="tag"/> instance.</returns>
+        /// <exception cref="ArgumentNullException"></exception>
+        /// <exception cref="FormatException"></exception>
+        /// <exception cref="ArrayTypeMismatchException"></exception>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        protected Tag AssertConventions([CanBeNull] Tag tag)
+        {
+            if (tag is null)
+                throw new ArgumentNullException(nameof(tag), "Child tag in collection cannot be null");
+
+            if (NamedChildren && tag.Name is null)
+                throw new FormatException("Children of this collection type must be named.");
+            if (!NamedChildren && tag.Name != null)
+                throw new FormatException("Children of this collection type cannot be named.");
+
+            if (RequiredType.HasValue && RequiredType.Value != tag.Type)
+                throw new ArrayTypeMismatchException("Incorrect tag type added to this collection.");
+
+            return tag;
         }
     }
 }
