@@ -36,6 +36,17 @@ namespace SharpNBT
         /// <param name="type">A constant describing the NBT type for this tag.</param>
         /// <param name="name">The name of the tag, or <see langword="null"/> if tag has no name.</param>
         /// <param name="values">A collection of values to include in this tag.</param>
+        protected EnumerableTag(TagType type, [CanBeNull] string name, [NotNull] T[] values) : base(type, name)
+        {
+            internalList.AddRange(values);
+        }
+        
+        /// <summary>
+        /// Initializes a new instance of the <see cref="EnumerableTag{T}"/> with the specified <paramref name="values"/>.
+        /// </summary>
+        /// <param name="type">A constant describing the NBT type for this tag.</param>
+        /// <param name="name">The name of the tag, or <see langword="null"/> if tag has no name.</param>
+        /// <param name="values">A collection of values to include in this tag.</param>
         protected EnumerableTag(TagType type, [CanBeNull] string name, [NotNull] IEnumerable<T> values) : base(type, name)
         {
             internalList.AddRange(values);

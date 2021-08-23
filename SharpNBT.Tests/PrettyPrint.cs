@@ -17,7 +17,7 @@ namespace SharpNBT.Tests
         [Fact]
         public void PrettyPrintToStdout()
         {
-            using var stream = NbtStream.OpenRead("./Data/bigtest.nbt");
+            using var stream = NbtFile.OpenRead("./Data/bigtest.nbt");
             var topLevel = stream.ReadTag<CompoundTag>();
             
             output.WriteLine(topLevel.PrettyPrinted());

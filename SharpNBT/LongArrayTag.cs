@@ -18,6 +18,15 @@ namespace SharpNBT
         public LongArrayTag([CanBeNull] string name) : base(TagType.LongArray, name)
         {
         }
+        /// <summary>
+        /// Initializes a new instance of the <see cref="LongArrayTag"/> with the specified <paramref name="values"/>.
+        /// </summary>
+        /// <param name="name">The name of the tag, or <see langword="null"/> if tag has no name.</param>
+        /// <param name="values">A collection of values to include in this tag.</param>
+        public LongArrayTag([CanBeNull] string name, [NotNull] long[] values) : base(TagType.LongArray, name, values)
+        {
+        }
+        
         
         /// <summary>
         /// Initializes a new instance of the <see cref="LongArrayTag"/> with the specified <paramref name="values"/>.

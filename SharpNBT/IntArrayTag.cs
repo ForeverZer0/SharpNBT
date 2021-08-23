@@ -18,6 +18,15 @@ namespace SharpNBT
         public IntArrayTag([CanBeNull] string name) : base(TagType.IntArray, name)
         {
         }
+        /// <summary>
+        /// Initializes a new instance of the <see cref="IntArrayTag"/> with the specified <paramref name="values"/>.
+        /// </summary>
+        /// <param name="name">The name of the tag, or <see langword="null"/> if tag has no name.</param>
+        /// <param name="values">A collection of values to include in this tag.</param>
+        public IntArrayTag([CanBeNull] string name, [NotNull] int[] values) : base(TagType.IntArray, name, values)
+        {
+        }
+        
         
         /// <summary>
         /// Initializes a new instance of the <see cref="IntArrayTag"/> with the specified <paramref name="values"/>.

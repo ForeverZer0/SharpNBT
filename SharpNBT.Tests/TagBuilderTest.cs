@@ -48,11 +48,11 @@ namespace SharpNBT.Tests
             var temp = builder.Create();
             output.WriteLine(temp.PrettyPrinted());
 
-            using (var stream = NbtStream.OpenWrite(FILE_PATH))
+            using (var stream = NbtFile.OpenWrite(FILE_PATH))
                 stream.WriteTag(temp);
             
             output.WriteLine("\n**** POST SERIALIZATION/DESERIALIZATION ****\n");
-            using (var stream = NbtStream.OpenRead(FILE_PATH))
+            using (var stream = NbtFile.OpenRead(FILE_PATH))
             {
                 var compound = stream.ReadTag<CompoundTag>();
                 output.WriteLine(compound.PrettyPrinted());

@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using System.IO.Compression;
 using Xunit;
 
@@ -13,8 +14,8 @@ namespace SharpNBT.Tests
             var compound = new CompoundTag("Top-Level Compound");
             compound.Add(new ByteTag("Child Byte", 255));
             compound.Add(new StringTag("Child String", "Hello World!"));
-        
-            using var stream = NbtStream.OpenWrite("./Data/write-test-uncompressed.nbt", CompressionLevel.NoCompression);
+
+            using var stream = NbtFile.OpenWrite("./Data/write-test-uncompressed.nbt", CompressionLevel.NoCompression);
             stream.WriteTag(compound);
         }
         
@@ -25,7 +26,7 @@ namespace SharpNBT.Tests
             compound.Add(new ByteTag("Child Byte", 255));
             compound.Add(new StringTag("Child String", "Hello World!"));
         
-            using var stream = NbtStream.OpenWrite("./Data/write-test-compressed.nbt", CompressionLevel.Optimal);
+            using var stream = NbtFile.OpenWrite("./Data/write-test-compressed.nbt", CompressionLevel.Optimal);
             stream.WriteTag(compound);
         }
         
@@ -33,7 +34,7 @@ namespace SharpNBT.Tests
         [Fact]
         public void ReadUncompressed()
         {
-            using var stream = NbtStream.OpenRead("./Data/hello_world.nbt");
+            using var stream = NbtFile.OpenRead("./Data/hello_world.nbt");
             var compound = stream.ReadTag<CompoundTag>();
             Assert.Equal("hello world", compound.Name);
         }
@@ -41,7 +42,7 @@ namespace SharpNBT.Tests
         [Fact]
         public void ReadCompressed()
         {
-            using var stream = NbtStream.OpenRead("./Data/bigtest.nbt");
+            using var stream = NbtFile.OpenRead("./Data/bigtest.nbt");
             var compound = stream.ReadTag<CompoundTag>();
             Assert.Equal("Level", compound.Name);
         }

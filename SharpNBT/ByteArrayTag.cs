@@ -21,7 +21,8 @@ namespace SharpNBT
         /// Initializes a new instance of the <see cref="ByteArrayTag"/>.
         /// </summary>
         /// <param name="name">The name of the tag, or <see langword="null"/> if tag has no name.</param>
-        public ByteArrayTag([CanBeNull] string name) : base(TagType.ByteArray, name)
+        /// <param name="values">A collection of values to include in this tag.</param>
+        public ByteArrayTag([CanBeNull] string name, byte[] values) : base(TagType.ByteArray, name, values)
         {
         }
         
