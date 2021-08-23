@@ -8,10 +8,16 @@ using JetBrains.Annotations;
 
 namespace SharpNBT
 {
-
+    /// <summary>
+    /// Delegate type for tag-related events that can occur within the <see cref="TagReader"/> class.
+    /// </summary>
+    /// <seealso cref="TagReader.TagRead"/>
     public delegate void TagReadCallback(TagReader reader, TagType type, Tag tag);
     
 
+    /// <summary>
+    /// Provides methods for reading NBT data from a stream.
+    /// </summary>
     [PublicAPI]
     public class TagReader : IDisposable
     {
@@ -28,11 +34,26 @@ namespace SharpNBT
         
         private readonly bool leaveOpen;
 
-        public TagReader(Stream stream, bool leaveOpen) : this(stream, stream is GZipStream, leaveOpen)
+        /// <summary>
+        /// Creates a new instance of the <see cref="TagReader"/> class from the given uncompressed <paramref name="stream"/>.
+        /// </summary>
+        /// <param name="stream">A <see cref="Stream"/> instance that the reader will be reading from.</param>
+        /// <param name="leaveOpen">
+        /// <paramref langword="true"/> to leave the <paramref name="stream"/> object open after disposing the <see cref="TagReader"/>
+        /// object; otherwise, <see langword="false"/>.</param>
+        public TagReader([NotNull] Stream stream, bool leaveOpen) : this(stream, stream is GZipStream, leaveOpen)
         {
         }
         
-        public TagReader(Stream stream, bool compressed, bool leaveOpen)
+        /// <summary>
+        /// Creates a new instance of the <see cref="TagReader"/> class from the given <paramref name="stream"/>.
+        /// </summary>
+        /// <param name="stream">A <see cref="Stream"/> instance that the reader will be reading from.</param>
+        /// <param name="compressed">Flag indicating if the underlying <paramref name="stream"/> is compressed.</param>
+        /// <param name="leaveOpen">
+        /// <paramref langword="true"/> to leave the <paramref name="stream"/> object open after disposing the <see cref="TagReader"/>
+        /// object; otherwise, <see langword="false"/>.</param>
+        public TagReader([NotNull] Stream stream, bool compressed, bool leaveOpen)
         {
             this.leaveOpen = leaveOpen;
             if (compressed && !(stream is GZipStream))

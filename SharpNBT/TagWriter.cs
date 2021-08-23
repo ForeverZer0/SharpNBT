@@ -10,6 +10,10 @@ using JetBrains.Annotations;
 
 namespace SharpNBT
 {
+    /// <summary>
+    /// Provides methods for writing NBT tags to a stream with/without compression.
+    /// </summary>
+    [PublicAPI]
     public class TagWriter : IDisposable
     {
         private readonly bool leaveOpen;
@@ -20,13 +24,29 @@ namespace SharpNBT
         [NotNull]
         protected Stream BaseStream { get; }
 
+        /// <summary>
+        /// Creates a new instance of the <see cref="TagWriter"/> class from the given <paramref name="stream"/>.
+        /// </summary>
+        /// <param name="stream">A <see cref="Stream"/> instance that the writer will be writing to.</param>
+        /// <param name="leaveOpen">
+        /// <paramref langword="true"/> to leave the <paramref name="stream"/> object open after disposing the <see cref="TagWriter"/>
+        /// object; otherwise, <see langword="false"/>.</param>
         public TagWriter([NotNull] Stream stream, bool leaveOpen = false) : this(stream, CompressionLevel.NoCompression, leaveOpen)
         {
         }
         
+        /// <summary>
+        /// Creates a new instance of the <see cref="TagWriter"/> class from the given <paramref name="stream"/>.
+        /// </summary>
+        /// <param name="stream">A <see cref="Stream"/> instance that the writer will be writing to.</param>
+        /// <param name="compression">Indicates a compression strategy to be used, if any.</param>
+        /// <param name="leaveOpen">
+        /// <paramref langword="true"/> to leave the <paramref name="stream"/> object open after disposing the <see cref="TagWriter"/>
+        /// object; otherwise, <see langword="false"/>.</param>
         public TagWriter([NotNull] Stream stream, CompressionLevel compression, bool leaveOpen = false)
         {
             this.leaveOpen = leaveOpen;
+            
             if (compression != CompressionLevel.NoCompression && !(stream is GZipStream))
                 BaseStream = new GZipStream(stream, compression, leaveOpen);
             else
@@ -255,24 +275,7 @@ namespace SharpNBT
         {
             await Task.Run(() => WriteTag(tag));
         }
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
+
         /// <summary>
         /// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
         /// </summary>
