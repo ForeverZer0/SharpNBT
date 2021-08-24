@@ -59,7 +59,7 @@ namespace SharpNBT
         }
         
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static ulong Decode(ReadOnlySpan<byte> buffer, int sizeBites, out int size)
+        public static ulong Decode(ReadOnlySpan<byte> buffer, int bits, out int size)
         {
             var shift = 0;
             ulong result = 0;
@@ -69,8 +69,8 @@ namespace SharpNBT
             {
                 ulong tmp = byteValue & 0x7f;
                 result |= tmp << shift;
-                if (shift > sizeBites)
-                    throw new OverflowException($"Value too large to be stored in a {sizeBites} integer.");
+                if (shift > bits)
+                    throw new OverflowException($"Value too large to be stored in a {bits} integer.");
                 size++;
                 if ((byteValue & 0x80) != 0x80)
                     return result;
@@ -81,7 +81,7 @@ namespace SharpNBT
         }
         
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static ulong Decode(Stream stream, int sizeBites, out int size)
+        public static ulong Decode(Stream stream, int bits, out int size)
         {
             var shift = 0;
             ulong result = 0;
@@ -94,8 +94,8 @@ namespace SharpNBT
                 
                 ulong tmp = byteValue & 0x7f;
                 result |= tmp << shift;
-                if (shift > sizeBites)
-                    throw new OverflowException($"Value too large to be stored in a {sizeBites} integer.");
+                if (shift > bits)
+                    throw new OverflowException($"Value too large to be stored in a {bits}-bit integer.");
                 if ((byteValue & 0x80) != 0x80)
                     return result;
                 

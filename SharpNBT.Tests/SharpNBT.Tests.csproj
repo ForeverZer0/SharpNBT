@@ -20,16 +20,18 @@
     </ItemGroup>
 
     <ItemGroup>
-      <None Update="Data\bigtest.nbt">
-        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      </None>
-      <None Update="Data\hello_world.nbt">
-        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      </None>
+      <ProjectReference Include="..\SharpNBT\SharpNBT.csproj" />
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\SharpNBT\SharpNBT.csproj" />
+      <None Remove="Data\bigtest.nbt" />
+      <EmbeddedResource Include="Data\bigtest.nbt">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </EmbeddedResource>
+      <None Remove="Data\hello_world.nbt" />
+      <EmbeddedResource Include="Data\hello_world.nbt">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </EmbeddedResource>
     </ItemGroup>
 
 </Project>
