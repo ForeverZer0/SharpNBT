@@ -56,7 +56,10 @@ namespace SharpNBT
         public virtual void WriteShort(ShortTag tag)
         {
             WriteTypeAndName(tag);
-            BaseStream.Write(GetBytes(tag.Value), 0, sizeof(short));
+            if (UseVarInt)
+                VarInt.Write(BaseStream, tag.Value, ZigZagEncoding);
+            else
+                BaseStream.Write(GetBytes(tag.Value), 0, sizeof(short));
         }
         
         /// <summary>
@@ -66,7 +69,10 @@ namespace SharpNBT
         public virtual void WriteInt(IntTag tag)
         {
             WriteTypeAndName(tag);
-            BaseStream.Write(GetBytes(tag.Value), 0, sizeof(int));
+            if (UseVarInt)
+                VarInt.Write(BaseStream, tag.Value, ZigZagEncoding);
+            else
+                BaseStream.Write(GetBytes(tag.Value), 0, sizeof(int));
         }
 
         /// <summary>
@@ -76,7 +82,10 @@ namespace SharpNBT
         public virtual void WriteLong(LongTag tag)
         {
             WriteTypeAndName(tag);
-            BaseStream.Write(GetBytes(tag.Value), 0, sizeof(long));
+            if (UseVarInt)
+                VarLong.Write(BaseStream, tag.Value, ZigZagEncoding);
+            else
+                BaseStream.Write(GetBytes(tag.Value), 0, sizeof(long));
         }
         
         /// <summary>
@@ -116,7 +125,7 @@ namespace SharpNBT
         public virtual void WriteByteArray(ByteArrayTag tag)
         {
             WriteTypeAndName(tag);
-            BaseStream.Write(GetBytes(tag.Count), 0, sizeof(int));
+            WriteCount(tag);
             BaseStream.Write(tag.ToArray(), 0, tag.Count);
         }
         
@@ -127,15 +136,21 @@ namespace SharpNBT
         public virtual void WriteIntArray(IntArrayTag tag)
         {
             WriteTypeAndName(tag);
-            BaseStream.Write(GetBytes(tag.Count), 0, sizeof(int));
+            WriteCount(tag);
             
             var values = new Span<int>(tag.ToArray());
+            if (UseVarInt)
+            {
+                // VarInt is effectively always little-endian
+                foreach (var n in values)
+                    VarInt.Write(BaseStream, n, ZigZagEncoding);
+                return;
+            }
             if (SwapEndian)
             {
                 for (var i = 0; i < values.Length; i++)
                     values[i] = values[i].SwapEndian();
             }
-            
             BaseStream.Write(MemoryMarshal.AsBytes(values));
         }
 
@@ -147,15 +162,22 @@ namespace SharpNBT
         {
 
             WriteTypeAndName(tag);
-            BaseStream.Write(GetBytes(tag.Count), 0, sizeof(int));
+            WriteCount(tag);
 
             var values = new Span<long>(tag.ToArray());
+            if (UseVarInt)
+            {
+                // VarLong is effectively always little-endian
+                foreach (var n in values)
+                    VarLong.Write(BaseStream, n, ZigZagEncoding);
+                return;
+            }
             if (SwapEndian)
             {
                 for (var i = 0; i < values.Length; i++)
                     values[i] = values[i].SwapEndian();
+                
             }
-            
             BaseStream.Write(MemoryMarshal.AsBytes(values));
         }
         
@@ -167,7 +189,7 @@ namespace SharpNBT
         {
             WriteTypeAndName(tag);
             BaseStream.WriteByte((byte) tag.ChildType);
-            BaseStream.Write(GetBytes(tag.Count), 0, sizeof(int));
+            WriteCount(tag);
             
             foreach (var child in tag)
                 WriteTag(child);
@@ -281,7 +303,7 @@ namespace SharpNBT
             if (!leaveOpen)
                 await BaseStream.DisposeAsync();
         }
-        
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void WriteTypeAndName(Tag tag)
         {
@@ -295,14 +317,23 @@ namespace SharpNBT
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void WriteUTF8String(string value)
         {
+            // String length prefixes never use ZigZag encoding
+            
             if (string.IsNullOrEmpty(value))
             {
-                BaseStream.Write(GetBytes((ushort) 0), 0, sizeof(ushort));
+                if (UseVarInt)
+                    VarInt.Write(BaseStream, 0);
+                else
+                    BaseStream.Write(GetBytes((ushort) 0), 0, sizeof(ushort));
             }
             else
             {
                 var utf8 = Encoding.UTF8.GetBytes(value);
-                BaseStream.Write(GetBytes((ushort) utf8.Length), 0, sizeof(ushort));
+                if (UseVarInt)
+                    VarInt.Write(BaseStream, utf8.Length);
+                else
+                    BaseStream.Write(GetBytes((ushort) utf8.Length), 0, sizeof(ushort));
+                
                 BaseStream.Write(utf8, 0, utf8.Length);
             }
         }
@@ -345,6 +376,14 @@ namespace SharpNBT
             if (SwapEndian)
                 Array.Reverse(bytes);
             return bytes;
+        }
+
+        private void WriteCount<T>(EnumerableTag<T> tag)
+        {
+            if (UseVarInt)
+                VarInt.Write(BaseStream, tag.Count, ZigZagEncoding);
+            else
+                BaseStream.Write(GetBytes(tag.Count), 0, sizeof(int));
         }
     }
 }
