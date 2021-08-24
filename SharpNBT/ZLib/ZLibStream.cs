@@ -30,7 +30,7 @@ namespace SharpNBT.ZLib
         /// </summary>
         /// <param name="stream">A <see cref="Stream"/> instance to be compressed.</param>
         /// <param name="level">The level of compression to use.</param>
-        public ZLibStream(Stream stream, CompressionLevel level) : this(stream, level, false)
+        public ZLibStream([NotNull] Stream stream, CompressionLevel level) : this(stream, level, false)
         {
         }
 
@@ -39,7 +39,7 @@ namespace SharpNBT.ZLib
         /// </summary>
         /// <param name="stream">A <see cref="Stream"/> instance to be compressed or uncompressed.</param>
         /// <param name="mode">The type of compression to use.</param>
-        public ZLibStream(Stream stream, CompressionMode mode) : this(stream, mode, false)
+        public ZLibStream([NotNull] Stream stream, CompressionMode mode) : this(stream, mode, false)
         {
         }
 
@@ -50,7 +50,7 @@ namespace SharpNBT.ZLib
         /// <param name="stream">A <see cref="Stream"/> instance to be compressed.</param>
         /// <param name="level">The level of compression to use.</param>
         /// <param name="leaveOpen">Indicates if the <paramref name="stream"/> should be left open after this <see cref="ZLibStream"/> is closed.</param>
-        public ZLibStream(Stream stream, CompressionLevel level, bool leaveOpen)
+        public ZLibStream([NotNull] Stream stream, CompressionLevel level, bool leaveOpen)
         {
             compressionMode = CompressionMode.Compress;
             this.leaveOpen = leaveOpen;
@@ -65,7 +65,7 @@ namespace SharpNBT.ZLib
         /// <param name="stream">A <see cref="Stream"/> instance to be compressed or uncompressed.</param>
         /// <param name="mode">The type of compression to use.</param>
         /// <param name="leaveOpen">Indicates if the <paramref name="stream"/> should be left open after this <see cref="ZLibStream"/> is closed.</param>
-        public ZLibStream(Stream stream, CompressionMode mode, bool leaveOpen)
+        public ZLibStream([NotNull] Stream stream, CompressionMode mode, bool leaveOpen)
         {
             compressionMode = mode;
             this.leaveOpen = leaveOpen;
@@ -233,7 +233,7 @@ namespace SharpNBT.ZLib
         /// <exception cref="T:System.NotSupportedException">The stream does not support writing.</exception>
         /// <exception cref="T:System.ObjectDisposedException">The stream has been disposed.</exception>
         /// <exception cref="T:System.InvalidOperationException">The stream is currently in use by a previous write operation.</exception>
-        public override async Task WriteAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken)
+        public override async Task WriteAsync([NotNull] byte[] buffer, int offset, int count, CancellationToken cancellationToken)
         {
             await DeflateStream.WriteAsync(buffer, offset, count, cancellationToken);
             adler32.Update(new ReadOnlySpan<byte>(buffer, offset, count));

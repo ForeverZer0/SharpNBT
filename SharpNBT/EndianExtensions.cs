@@ -45,11 +45,11 @@ namespace SharpNBT
         /// <inheritdoc cref="SwapEndian(short)"/>
         [CLSCompliant(false)]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static ulong SwapEndian(this ulong val)
+        public static ulong SwapEndian(this ulong value)
         {
-            val = ((val << 8)  & 0xFF00FF00FF00FF00UL ) | ((val >> 8) & 0x00FF00FF00FF00FFUL );
-            val = ((val << 16) & 0xFFFF0000FFFF0000UL ) | ((val >> 16) & 0x0000FFFF0000FFFFUL );
-            return (val << 32) | (val >> 32);
+            value = ((value << 8)  & 0xFF00FF00FF00FF00UL) | ((value >> 8)  & 0x00FF00FF00FF00FFUL);
+            value = ((value << 16) & 0xFFFF0000FFFF0000UL) | ((value >> 16) & 0x0000FFFF0000FFFFUL);
+            return (value << 32) | (value >> 32);
         }
         
         /// <inheritdoc cref="SwapEndian(short)"/>
