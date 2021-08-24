@@ -70,11 +70,22 @@ namespace SharpNBT
         public ShortTag ReadShort(bool named = true)
         {
             var name = named ? ReadUTF8String() : null;
-            Span<byte> buffer = stackalloc byte[sizeof(short)];
-            BaseStream.Read(buffer);
-            var value = BitConverter.ToInt16(buffer);
+            short value;
 
-            return new ShortTag(name, SwapEndian ? value.SwapEndian() : value);
+            if (UseVarInt)
+            {
+                value = (short)VarInt.Read(BaseStream, ZigZagEncoding);
+            }
+            else
+            {
+                Span<byte> buffer = stackalloc byte[sizeof(short)];
+                BaseStream.Read(buffer);
+                value = BitConverter.ToInt16(buffer);
+                if (SwapEndian)
+                    value = value.SwapEndian();
+            }
+            
+            return new ShortTag(name, value);
         }
         
         /// <summary>
@@ -86,7 +97,7 @@ namespace SharpNBT
         public IntTag ReadInt(bool named = true)
         {
             var name = named ? ReadUTF8String() : null;
-            return new IntTag(name, ReadInt32());
+            return new IntTag(name, UseVarInt ? VarInt.Read(BaseStream, ZigZagEncoding) : ReadInt32());
         }
         
         /// <summary>
@@ -98,11 +109,22 @@ namespace SharpNBT
         public LongTag ReadLong(bool named = true)
         {
             var name = named ? ReadUTF8String() : null;
-            Span<byte> buffer = stackalloc byte[sizeof(long)];
-            BaseStream.Read(buffer);
-            var value = BitConverter.ToInt64(buffer);
-
-            return new LongTag(name, SwapEndian ? value.SwapEndian() : value);
+            long value;
+            
+            if (UseVarInt)
+            {
+                value = VarLong.Read(BaseStream, ZigZagEncoding);
+            }
+            else
+            {
+                Span<byte> buffer = stackalloc byte[sizeof(long)];
+                BaseStream.Read(buffer);
+                value = BitConverter.ToInt64(buffer);
+                if (SwapEndian)
+                    value = value.SwapEndian();
+            }
+            
+            return new LongTag(name, value);
         }
         
         /// <summary>
@@ -117,7 +139,7 @@ namespace SharpNBT
             
             var buffer = new byte[sizeof(float)];
             BaseStream.Read(buffer, 0, sizeof(float));
-            if (BitConverter.IsLittleEndian)
+            if (SwapEndian)
                 Array.Reverse(buffer);
             
             return new FloatTag( name, BitConverter.ToSingle(buffer));
@@ -134,7 +156,7 @@ namespace SharpNBT
             var name = named ? ReadUTF8String() : null;
             var buffer = new byte[sizeof(double)];
             BaseStream.Read(buffer, 0, buffer.Length);
-            if (BitConverter.IsLittleEndian)
+            if (SwapEndian)
                 Array.Reverse(buffer);
 
             return new DoubleTag( name, BitConverter.ToDouble(buffer, 0));
@@ -162,7 +184,7 @@ namespace SharpNBT
         public ByteArrayTag ReadByteArray(bool named = true)
         {
             var name = named ? ReadUTF8String() : null;
-            var count = ReadInt32();
+            var count = ReadCount();
             var buffer = new byte[count];
             BaseStream.Read(buffer, 0, count);
             return new ByteArrayTag(name, buffer);
@@ -179,12 +201,21 @@ namespace SharpNBT
             const int INT_SIZE = sizeof(int);
             
             var name = named ? ReadUTF8String() : null;
-            var count = ReadInt32();
+            var count = ReadCount();
+            
+            if (UseVarInt)
+            {
+                var array = new int[count];
+                for (var i = 0; i < count; i++)
+                    array[i] = VarInt.Read(BaseStream, ZigZagEncoding);
+                return new IntArrayTag(name, array);
+            }
+ 
             var buffer = new byte[count * INT_SIZE];
             BaseStream.Read(buffer, 0, count * INT_SIZE);
 
             Span<int> values = MemoryMarshal.Cast<byte, int>(buffer);
-            if (BitConverter.IsLittleEndian)
+            if (SwapEndian)
             {
                 for (var i = 0; i < count; i++)
                     values[i] = values[i].SwapEndian();
@@ -203,12 +234,21 @@ namespace SharpNBT
             const int LONG_SIZE = sizeof(long);
             
             var name = named ? ReadUTF8String() : null;
-            var count = ReadInt32();
+            var count = ReadCount();
+            
+            if (UseVarInt)
+            {
+                var array = new long[count];
+                for (var i = 0; i < count; i++)
+                    array[i] = VarLong.Read(BaseStream, ZigZagEncoding);
+                return new LongArrayTag(name, array);
+            }
+
             var buffer = new byte[count * LONG_SIZE];
             BaseStream.Read(buffer, 0, count * LONG_SIZE);
 
             Span<long> values = MemoryMarshal.Cast<byte, long>(buffer);
-            if (BitConverter.IsLittleEndian)
+            if (SwapEndian)
             {
                 for (var i = 0; i < count; i++)
                     values[i] = values[i].SwapEndian();
@@ -226,7 +266,7 @@ namespace SharpNBT
         {
             var name = named ? ReadUTF8String() : null;
             var childType = ReadType();
-            var count = ReadInt32();
+            var count = ReadCount();
             
             if (childType == TagType.End && count > 0)
                 throw new FormatException("An EndTag is not a valid child type for a non-empty ListTag.");
@@ -364,11 +404,16 @@ namespace SharpNBT
         [CanBeNull]
         protected string ReadUTF8String()
         {
-            Span<byte> buffer = stackalloc byte[sizeof(ushort)];
-            BaseStream.Read(buffer);
-            var length = BitConverter.ToUInt16(buffer);
-            if (BitConverter.IsLittleEndian)
-                length = length.SwapEndian();
+            int length;
+            if (UseVarInt)
+                length = VarInt.Read(BaseStream);
+            else
+            {
+                Span<byte> buffer = stackalloc byte[sizeof(ushort)];
+                BaseStream.Read(buffer);
+                var uint16 = BitConverter.ToUInt16(buffer);
+                length = SwapEndian ? uint16.SwapEndian() : uint16;
+            }
 
             if (length == 0)
                 return null;
@@ -377,6 +422,8 @@ namespace SharpNBT
             BaseStream.Read(utf8, 0, length);
             return Encoding.UTF8.GetString(utf8);
         }
+
+        private int ReadCount() => UseVarInt ? ReadInt32() : VarInt.Read(BaseStream, ZigZagEncoding);
 
         /// <summary>
         /// Reads a 64-bit signed (big-endian) integer from the stream, converting to native endian when necessary.

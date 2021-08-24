@@ -10,7 +10,7 @@ using JetBrains.Annotations;
 namespace SharpNBT
 {
     /// <summary>
-    /// Provides methods for writing NBT tags to a stream with/without compression.
+    /// Provides methods for writing NBT tags to a stream.
     /// </summary>
     [PublicAPI]
     public class TagWriter : TagIO
