@@ -1,6 +1,5 @@
 using System;
 using System.IO;
-using System.IO.Compression;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
@@ -41,25 +40,12 @@ namespace SharpNBT
         /// <param name="leaveOpen">
         /// <paramref langword="true"/> to leave the <paramref name="stream"/> object open after disposing the <see cref="TagReader"/>
         /// object; otherwise, <see langword="false"/>.</param>
-        public TagReader([NotNull] Stream stream, bool leaveOpen) : this(stream, stream is GZipStream, leaveOpen)
+        public TagReader([NotNull] Stream stream, bool leaveOpen = false)
         {
-        }
-        
-        /// <summary>
-        /// Creates a new instance of the <see cref="TagReader"/> class from the given <paramref name="stream"/>.
-        /// </summary>
-        /// <param name="stream">A <see cref="Stream"/> instance that the reader will be reading from.</param>
-        /// <param name="compressed">Flag indicating if the underlying <paramref name="stream"/> is compressed.</param>
-        /// <param name="leaveOpen">
-        /// <paramref langword="true"/> to leave the <paramref name="stream"/> object open after disposing the <see cref="TagReader"/>
-        /// object; otherwise, <see langword="false"/>.</param>
-        public TagReader([NotNull] Stream stream, bool compressed, bool leaveOpen)
-        {
+            BaseStream = stream ?? throw new ArgumentNullException(nameof(stream));
+            if (!stream.CanRead)
+                throw new IOException("Stream is not opened for reading.");
             this.leaveOpen = leaveOpen;
-            if (compressed && !(stream is GZipStream))
-                BaseStream = new GZipStream(stream, CompressionMode.Decompress, leaveOpen);
-            else
-                BaseStream = stream;
         }
 
         /// <summary>

@@ -1,10 +1,14 @@
+using System;
 using System.IO;
 using System.IO.Compression;
 using System.Threading.Tasks;
 using JetBrains.Annotations;
+using SharpNBT.ZLib;
 
 namespace SharpNBT
 {
+    // TODO: Implement the allowance of ListTag via overloads when writing in Bedrock compatible format
+    
     /// <summary>
     /// Provides static convenience methods for working with NBT-formatted files, including both reading and writing.
     /// </summary>
@@ -15,23 +19,23 @@ namespace SharpNBT
         /// Reads a file at the given <paramref name="path"/> and deserializes the top-level <see cref="CompoundTag"/> contained in the file.
         /// </summary>
         /// <param name="path">The path to the file to be read.</param>
+        /// <param name="compression">Indicates the compression algorithm used to compress the file.</param>
         /// <returns>The deserialized <see cref="CompoundTag"/> instance.</returns>
-        public static CompoundTag Read([NotNull] string path)
+        public static CompoundTag Read([NotNull] string path, CompressionType compression = CompressionType.AutoDetect)
         {
-            using var stream = File.OpenRead(path);
-            using var reader = new TagReader(stream, IsCompressed(path), false);
+            using var reader = new TagReader(GetReadStream(path, compression));
             return reader.ReadTag<CompoundTag>();
         }
-        
+
         /// <summary>
         /// Asynchronously reads a file at the given <paramref name="path"/> and deserializes the top-level <see cref="CompoundTag"/> contained in the file.
         /// </summary>
         /// <param name="path">The path to the file to be read.</param>
+        /// <param name="compression">Indicates the compression algorithm used to compress the file.</param>
         /// <returns>The deserialized <see cref="CompoundTag"/> instance.</returns>
-        public static async Task<CompoundTag> ReadAsync([NotNull] string path)
+        public static async Task<CompoundTag> ReadAsync([NotNull] string path, CompressionType compression = CompressionType.AutoDetect)
         {
-            await using var stream = File.OpenRead(path);
-            await using var reader = new TagReader(stream, IsCompressed(path), false);
+            await using var reader = new TagReader(GetReadStream(path, compression));
             return await reader.ReadTagAsync<CompoundTag>();
         }
         
@@ -39,60 +43,88 @@ namespace SharpNBT
         /// Writes the given <paramref name="tag"/> to a file at the specified <paramref name="path"/>.
         /// </summary>
         /// <param name="path">The path to the file to be written to.</param>
+        /// <param name="type">A flag indicating the type of compression to use.</param>
         /// <param name="tag">The top-level <see cref="CompoundTag"/> instance to be serialized.</param>
-        /// <param name="compression">Indicates a compression strategy to be used, if any.</param>
-        public static void Write([NotNull] string path, [NotNull] CompoundTag tag, CompressionLevel compression = CompressionLevel.NoCompression)
+        /// <param name="level">Indicates a compression strategy to be used, if any.</param>
+        public static void Write([NotNull] string path, [NotNull] CompoundTag tag, CompressionType type = CompressionType.GZip, CompressionLevel level = CompressionLevel.Fastest)
         {
             using var stream = File.OpenWrite(path);
-            using var writer = new TagWriter(stream, compression);
+            using var writer = new TagWriter(GetWriteStream(stream, type, level));
             writer.WriteTag(tag);
         }
         
-        public static async Task WriteAsync([NotNull] string path, [NotNull] CompoundTag tag, CompressionLevel compression = CompressionLevel.NoCompression)
+        public static async Task WriteAsync([NotNull] string path, [NotNull] CompoundTag tag, CompressionType type = CompressionType.GZip, CompressionLevel level = CompressionLevel.Fastest)
         {
             await using var stream = File.OpenWrite(path);
-            await using var writer = new TagWriter(stream, compression);
+            await using var writer = new TagWriter(GetWriteStream(stream, type, level));
             await writer.WriteTagAsync(tag);
-        }
-
-        /// <summary>
-        /// Detects the presence of a GZip compressed file at the given <paramref name="path"/> by searching for the "magic number" in the header.
-        /// </summary>
-        /// <param name="path">The path of the file to query.</param>
-        /// <returns><see langword="true"/> if GZip compression was detected, otherwise <see langword="false"/>.</returns>
-        public static bool IsCompressed([NotNull] string path)
-        {
-            using var str = File.OpenRead(path);
-            return str.ReadByte() == 0x1F && str.ReadByte() == 0x8B;
         }
 
         /// <summary>
         /// Opens an existing NBT file for reading, and returns a <see cref="TagReader"/> instance for it.
         /// </summary>
         /// <param name="path">The path of the file to query write.</param>
+        /// <param name="compression">Indicates the compression algorithm used to compress the file.</param>
         /// <returns>A <see cref="TagReader"/> instance for the file stream.</returns>
         /// <remarks>File compression will be automatically detected and used handled when necessary.</remarks>
-        public static TagReader OpenRead([NotNull] string path)
+        public static TagReader OpenRead([NotNull] string path, CompressionType compression = CompressionType.AutoDetect)
         {
-            var compressed = IsCompressed(path);
-            var stream = File.OpenRead(path);
-            return new TagReader(stream, compressed, false);
+            return new TagReader(GetReadStream(path, compression));
         }
 
         /// <summary>
         /// Opens an existing NBT file or creates a new one if one if it does not exist, and returns a <see cref="TagWriter"/> instance for it.
         /// </summary>
         /// <param name="path">The path of the file to query write.</param>
-        /// <param name="compression">A flag indicating the compression strategy that will be used, if any.</param>
+        /// <param name="type">A flag indicating the type of compression to use.</param>
+        /// <param name="level">A flag indicating the compression strategy that will be used, if any.</param>
         /// <returns>A <see cref="TagWriter"/> instance for the file stream.</returns>
-        public static TagWriter OpenWrite([NotNull] string path, CompressionLevel compression = CompressionLevel.NoCompression)
+        public static TagWriter OpenWrite([NotNull] string path, CompressionType type = CompressionType.GZip, CompressionLevel level = CompressionLevel.Fastest)
         {
-            var stream = File.OpenWrite(path);
-            if (compression == CompressionLevel.NoCompression)
-                return new TagWriter(stream, compression);
-            
-            var gzip = new GZipStream(stream, compression, false);
-            return new TagWriter(gzip, compression);
+            var stream = GetWriteStream(File.OpenWrite(path), type, level);
+            return new TagWriter(stream);
         }
+
+        private static Stream GetWriteStream(Stream stream, CompressionType type, CompressionLevel level)
+        {
+            switch (type)
+            {
+                case CompressionType.None: return stream;
+                case CompressionType.GZip: return new GZipStream(stream, level, false);
+                case CompressionType.ZLib: return new ZLibStream(stream, level);
+                case CompressionType.AutoDetect:
+                    throw new ArgumentOutOfRangeException(nameof(type), "Auto-detect is not a valid compression type for writing files.");
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(type), type, null);
+            }
+        }
+
+        private static Stream GetReadStream(string path, CompressionType compression)
+        {
+            var stream = File.OpenRead(path);
+            if (compression == CompressionType.AutoDetect)
+            {
+                var firstByte = (byte) stream.ReadByte();
+                stream.Seek(0, SeekOrigin.Begin);
+
+                compression = firstByte switch
+                {
+                    0x78 => CompressionType.ZLib,
+                    0x1F => CompressionType.GZip,
+                    0x08 => CompressionType.None, // ListTag (valid in Bedrock)
+                    0x0A => CompressionType.None, // CompoundTag
+                    _ => throw new FormatException("Unable to detect compression type.")
+                };
+            }
+
+            return compression switch
+            {
+                CompressionType.None => stream,
+                CompressionType.GZip => new GZipStream(stream, CompressionMode.Decompress, false),
+                CompressionType.ZLib => new ZLibStream(stream, CompressionMode.Decompress),
+                _ => throw new ArgumentOutOfRangeException(nameof(compression), compression, null)
+            };
+        }
+        
     }
 }

@@ -1,6 +1,5 @@
 using System;
 using System.IO;
-using System.IO.Compression;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
@@ -31,28 +30,14 @@ namespace SharpNBT
         /// <param name="leaveOpen">
         /// <paramref langword="true"/> to leave the <paramref name="stream"/> object open after disposing the <see cref="TagWriter"/>
         /// object; otherwise, <see langword="false"/>.</param>
-        public TagWriter([NotNull] Stream stream, bool leaveOpen = false) : this(stream, CompressionLevel.NoCompression, leaveOpen)
+        public TagWriter([NotNull] Stream stream, bool leaveOpen = false)
         {
-        }
-        
-        /// <summary>
-        /// Creates a new instance of the <see cref="TagWriter"/> class from the given <paramref name="stream"/>.
-        /// </summary>
-        /// <param name="stream">A <see cref="Stream"/> instance that the writer will be writing to.</param>
-        /// <param name="compression">Indicates a compression strategy to be used, if any.</param>
-        /// <param name="leaveOpen">
-        /// <paramref langword="true"/> to leave the <paramref name="stream"/> object open after disposing the <see cref="TagWriter"/>
-        /// object; otherwise, <see langword="false"/>.</param>
-        public TagWriter([NotNull] Stream stream, CompressionLevel compression, bool leaveOpen = false)
-        {
+            BaseStream = stream ?? throw new ArgumentNullException(nameof(stream));
+            if (!stream.CanWrite)
+                throw new IOException("Stream is not opened for writing.");
             this.leaveOpen = leaveOpen;
-            
-            if (compression != CompressionLevel.NoCompression && !(stream is GZipStream))
-                BaseStream = new GZipStream(stream, compression, leaveOpen);
-            else
-                BaseStream = stream ?? throw new ArgumentNullException(nameof(stream), "Stream cannot be null");
         }
-        
+
         /// <summary>
         /// Writes a <see cref="ByteTag"/> to the stream.
         /// </summary>

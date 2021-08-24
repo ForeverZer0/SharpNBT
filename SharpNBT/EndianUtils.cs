@@ -26,7 +26,7 @@ namespace SharpNBT
         
         /// <inheritdoc cref="BigEndianBytes(short)"/>
         [CLSCompliant(false)]
-        internal static byte[] BigEndianBytes(this ushort n) => BitConverter.GetBytes(BitConverter.IsLittleEndian ? SwapEndian(n) : n);
+        public static byte[] BigEndianBytes(this ushort n) => BitConverter.GetBytes(BitConverter.IsLittleEndian ? SwapEndian(n) : n);
 
         /// <inheritdoc cref="BigEndianBytes(short)"/>
         internal static byte[] BigEndianBytes(this float n)
