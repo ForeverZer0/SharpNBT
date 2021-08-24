@@ -16,7 +16,7 @@ namespace SharpNBT.Tests
         public FormatConverters(ITestOutputHelper output)
         {
             this.output = output;
-            using var stream = NbtFile.OpenRead("./Data/bigtest.nbt");
+            using var stream = NbtFile.OpenRead("./Data/bigtest.nbt", FormatOptions.Java);
             compoundTag = stream.ReadTag<CompoundTag>();
         }
 

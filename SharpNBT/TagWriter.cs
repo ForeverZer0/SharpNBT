@@ -13,7 +13,7 @@ namespace SharpNBT
     /// Provides methods for writing NBT tags to a stream with/without compression.
     /// </summary>
     [PublicAPI]
-    public class TagWriter : IDisposable
+    public class TagWriter : TagIO
     {
         private readonly bool leaveOpen;
         
@@ -27,10 +27,11 @@ namespace SharpNBT
         /// Creates a new instance of the <see cref="TagWriter"/> class from the given <paramref name="stream"/>.
         /// </summary>
         /// <param name="stream">A <see cref="Stream"/> instance that the writer will be writing to.</param>
+        /// <param name="options">Bitwise flags to configure how data should be handled for compatibility between different specifications.</param>
         /// <param name="leaveOpen">
         /// <paramref langword="true"/> to leave the <paramref name="stream"/> object open after disposing the <see cref="TagWriter"/>
         /// object; otherwise, <see langword="false"/>.</param>
-        public TagWriter([NotNull] Stream stream, bool leaveOpen = false)
+        public TagWriter([NotNull] Stream stream, FormatOptions options, bool leaveOpen = false) : base(options)
         {
             BaseStream = stream ?? throw new ArgumentNullException(nameof(stream));
             if (!stream.CanWrite)
@@ -55,7 +56,7 @@ namespace SharpNBT
         public virtual void WriteShort(ShortTag tag)
         {
             WriteTypeAndName(tag);
-            BaseStream.Write(tag.Value.BigEndianBytes(), 0, sizeof(short));
+            BaseStream.Write(GetBytes(tag.Value), 0, sizeof(short));
         }
         
         /// <summary>
@@ -65,7 +66,7 @@ namespace SharpNBT
         public virtual void WriteInt(IntTag tag)
         {
             WriteTypeAndName(tag);
-            BaseStream.Write(tag.Value.BigEndianBytes(), 0, sizeof(int));
+            BaseStream.Write(GetBytes(tag.Value), 0, sizeof(int));
         }
 
         /// <summary>
@@ -75,7 +76,7 @@ namespace SharpNBT
         public virtual void WriteLong(LongTag tag)
         {
             WriteTypeAndName(tag);
-            BaseStream.Write(tag.Value.BigEndianBytes(), 0, sizeof(long));
+            BaseStream.Write(GetBytes(tag.Value), 0, sizeof(long));
         }
         
         /// <summary>
@@ -85,7 +86,7 @@ namespace SharpNBT
         public virtual void WriteFloat(FloatTag tag)
         {
             WriteTypeAndName(tag);
-            BaseStream.Write(tag.Value.BigEndianBytes(), 0, sizeof(float));
+            BaseStream.Write(GetBytes(tag.Value), 0, sizeof(float));
         }
 
         /// <summary>
@@ -95,7 +96,7 @@ namespace SharpNBT
         public virtual void WriteDouble(DoubleTag tag)
         {
             WriteTypeAndName(tag);
-            BaseStream.Write(tag.Value.BigEndianBytes(), 0, sizeof(double));
+            BaseStream.Write(GetBytes(tag.Value), 0, sizeof(double));
         }
         
         /// <summary>
@@ -115,7 +116,7 @@ namespace SharpNBT
         public virtual void WriteByteArray(ByteArrayTag tag)
         {
             WriteTypeAndName(tag);
-            BaseStream.Write(tag.Count.BigEndianBytes(), 0, sizeof(int));
+            BaseStream.Write(GetBytes(tag.Count), 0, sizeof(int));
             BaseStream.Write(tag.ToArray(), 0, tag.Count);
         }
         
@@ -126,10 +127,10 @@ namespace SharpNBT
         public virtual void WriteIntArray(IntArrayTag tag)
         {
             WriteTypeAndName(tag);
-            BaseStream.Write(tag.Count.BigEndianBytes(), 0, sizeof(int));
+            BaseStream.Write(GetBytes(tag.Count), 0, sizeof(int));
             
             var values = new Span<int>(tag.ToArray());
-            if (BitConverter.IsLittleEndian)
+            if (SwapEndian)
             {
                 for (var i = 0; i < values.Length; i++)
                     values[i] = values[i].SwapEndian();
@@ -146,10 +147,10 @@ namespace SharpNBT
         {
 
             WriteTypeAndName(tag);
-            BaseStream.Write(tag.Count.BigEndianBytes(), 0, sizeof(int));
+            BaseStream.Write(GetBytes(tag.Count), 0, sizeof(int));
 
             var values = new Span<long>(tag.ToArray());
-            if (BitConverter.IsLittleEndian)
+            if (SwapEndian)
             {
                 for (var i = 0; i < values.Length; i++)
                     values[i] = values[i].SwapEndian();
@@ -166,7 +167,7 @@ namespace SharpNBT
         {
             WriteTypeAndName(tag);
             BaseStream.WriteByte((byte) tag.ChildType);
-            BaseStream.Write(tag.Count.BigEndianBytes(), 0, sizeof(int));
+            BaseStream.Write(GetBytes(tag.Count), 0, sizeof(int));
             
             foreach (var child in tag)
                 WriteTag(child);
@@ -264,7 +265,7 @@ namespace SharpNBT
         /// <summary>
         /// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
         /// </summary>
-        public void Dispose()
+        public override void Dispose()
         {
             BaseStream.Flush();
             if (!leaveOpen)
@@ -296,14 +297,54 @@ namespace SharpNBT
         {
             if (string.IsNullOrEmpty(value))
             {
-                BaseStream.Write(((ushort) 0).BigEndianBytes(), 0, sizeof(ushort));
+                BaseStream.Write(GetBytes((ushort) 0), 0, sizeof(ushort));
             }
             else
             {
                 var utf8 = Encoding.UTF8.GetBytes(value);
-                BaseStream.Write(((ushort) utf8.Length).BigEndianBytes(), 0, sizeof(ushort));
+                BaseStream.Write(GetBytes((ushort) utf8.Length), 0, sizeof(ushort));
                 BaseStream.Write(utf8, 0, utf8.Length);
             }
+        }
+
+        /// <summary>
+        /// Gets the bytes for this number, accounting for the host machine endianness and target format.
+        /// </summary>
+        /// <param name="n">The value to convert.</param>
+        /// <returns>An array of bytes representing the value in compatible format.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private byte[] GetBytes(short n) => BitConverter.GetBytes(SwapEndian ? n.SwapEndian() : n);
+
+        /// <inheritdoc cref="GetBytes(short)"/>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private byte[] GetBytes(int n) => BitConverter.GetBytes(SwapEndian ? n.SwapEndian() : n);
+        
+        /// <inheritdoc cref="GetBytes(short)"/>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private byte[] GetBytes(long n) => BitConverter.GetBytes(SwapEndian ? n.SwapEndian() : n);
+        
+        /// <inheritdoc cref="GetBytes(short)"/>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private byte[] GetBytes(ushort n) => BitConverter.GetBytes(SwapEndian ? n.SwapEndian() : n);
+        
+        /// <inheritdoc cref="GetBytes(short)"/>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private byte[] GetBytes(float n)
+        {
+            var bytes = BitConverter.GetBytes(n);
+            if (SwapEndian)
+                Array.Reverse(bytes);
+            return bytes;
+        }
+
+        /// <inheritdoc cref="GetBytes(short)"/>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private byte[] GetBytes(double n)
+        {
+            var bytes = BitConverter.GetBytes(n);
+            if (SwapEndian)
+                Array.Reverse(bytes);
+            return bytes;
         }
     }
 }

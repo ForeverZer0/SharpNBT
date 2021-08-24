@@ -18,7 +18,7 @@ namespace SharpNBT
     /// Provides methods for reading NBT data from a stream.
     /// </summary>
     [PublicAPI]
-    public class TagReader : IDisposable
+    public class TagReader : TagIO
     {
         /// <summary>
         /// Occurs when a tag has been fully deserialized from the stream.
@@ -37,10 +37,11 @@ namespace SharpNBT
         /// Creates a new instance of the <see cref="TagReader"/> class from the given uncompressed <paramref name="stream"/>.
         /// </summary>
         /// <param name="stream">A <see cref="Stream"/> instance that the reader will be reading from.</param>
+        /// <param name="options">Bitwise flags to configure how data should be handled for compatibility between different specifications.</param>
         /// <param name="leaveOpen">
         /// <paramref langword="true"/> to leave the <paramref name="stream"/> object open after disposing the <see cref="TagReader"/>
         /// object; otherwise, <see langword="false"/>.</param>
-        public TagReader([NotNull] Stream stream, bool leaveOpen = false)
+        public TagReader([NotNull] Stream stream, FormatOptions options, bool leaveOpen = false) : base(options)
         {
             BaseStream = stream ?? throw new ArgumentNullException(nameof(stream));
             if (!stream.CanRead)
@@ -73,7 +74,7 @@ namespace SharpNBT
             BaseStream.Read(buffer);
             var value = BitConverter.ToInt16(buffer);
 
-            return new ShortTag(name, BitConverter.IsLittleEndian ? value.SwapEndian() : value);
+            return new ShortTag(name, SwapEndian ? value.SwapEndian() : value);
         }
         
         /// <summary>
@@ -101,7 +102,7 @@ namespace SharpNBT
             BaseStream.Read(buffer);
             var value = BitConverter.ToInt64(buffer);
 
-            return new LongTag(name, BitConverter.IsLittleEndian ? value.SwapEndian() : value);
+            return new LongTag(name, SwapEndian ? value.SwapEndian() : value);
         }
         
         /// <summary>
@@ -386,13 +387,13 @@ namespace SharpNBT
             Span<byte> buffer = stackalloc byte[sizeof(int)];
             BaseStream.Read(buffer);
             var value = BitConverter.ToInt32(buffer);
-            return BitConverter.IsLittleEndian ? value.SwapEndian() : value;
+            return SwapEndian ? value.SwapEndian() : value;
         }
 
         /// <summary>
         /// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
         /// </summary>
-        public void Dispose()
+        public override void Dispose()
         {
             if (!leaveOpen)
                 BaseStream.Dispose();
