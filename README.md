@@ -1,5 +1,7 @@
 # SharpNBT
 
+[![.NET](https://github.com/ForeverZer0/SharpNBT/actions/workflows/dotnet.yml/badge.svg)](https://github.com/ForeverZer0/SharpNBT/actions/workflows/dotnet.yml)
+
 A CLS-compliant implementation of the Named Binary Tag (NBT) specification, written in pure C# with no external dependencies and targeting .NET Standard 2.1 to support a wide variety of .NET implementations on all platforms.
 
 ## Features
