@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Runtime.Serialization;
 using System.Text;
 using JetBrains.Annotations;
 
@@ -69,7 +68,7 @@ namespace SharpNBT
         {
             foreach (var tag in this)
             {
-                if (name.Equals(tag.Name))
+                if (string.CompareOrdinal(name, tag.Name) == 0)
                     return tag;
 
                 if (deep && tag is CompoundTag child)
@@ -82,6 +81,13 @@ namespace SharpNBT
 
             return null;
         }
+
+        /// <summary>
+        /// Retrieves a child tag with the specified <paramref name="name"/>, or <see langword="null"/> if no match was found.
+        /// </summary>
+        /// <param name="name">The name of the tag to retrieve.</param>
+        [CanBeNull] 
+        public Tag this[[NotNull] string name] => Find(name, false);
 
         /// <inheritdoc cref="Tag.PrettyPrinted(StringBuilder,int,string)"/>
         protected internal override void PrettyPrinted(StringBuilder buffer, int level, string indent)
