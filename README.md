@@ -123,3 +123,7 @@ Everyone interacting in the SharpNBT project’s codebases, issue trackers, chat
 ## Special Thanks
 
 This project would not be possible without all the contributors to the https://wiki.vg/ site and its maintainers, who have created an invaluable source of information for developers for everything related to the game of Minecraft.
+
+---
+
+If you benefit from this project, please consider supporting it by giving it a star on GitHub!
