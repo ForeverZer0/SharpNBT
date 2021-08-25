@@ -193,8 +193,20 @@ namespace SharpNBT
             info.AddValue("name", Name);
         }
 
+        /// <summary>
+        /// Tests for equality of this object with another <see cref="Tag"/> instance.
+        /// </summary>
+        /// <param name="left">First value to compare.</param>
+        /// <param name="right">Second value to compare.</param>
+        /// <returns>Result of comparison.</returns>
         public static bool operator ==(Tag left, Tag right) => Equals(left, right);
 
+        /// <summary>
+        /// Tests for inequality of this object with another <see cref="Tag"/> instance.
+        /// </summary>
+        /// <param name="left">First value to compare.</param>
+        /// <param name="right">Second value to compare.</param>
+        /// <returns>Result of comparison.</returns>
         public static bool operator !=(Tag left, Tag right) => !Equals(left, right);
     }
     
@@ -287,8 +299,20 @@ namespace SharpNBT
             }
         }
 
+        /// <summary>
+        /// Tests for equality of this object with another <see cref="Tag"/> instance.
+        /// </summary>
+        /// <param name="left">First value to compare.</param>
+        /// <param name="right">Second value to compare.</param>
+        /// <returns>Result of comparison.</returns>
         public static bool operator ==(Tag<T> left, Tag<T> right) => Equals(left, right);
 
+        /// <summary>
+        /// Tests for inequality of this object with another <see cref="Tag"/> instance.
+        /// </summary>
+        /// <param name="left">First value to compare.</param>
+        /// <param name="right">Second value to compare.</param>
+        /// <returns>Result of comparison.</returns>
         public static bool operator !=(Tag<T> left, Tag<T> right) => !Equals(left, right);
     }
 }

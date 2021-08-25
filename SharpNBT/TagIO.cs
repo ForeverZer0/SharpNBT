@@ -39,6 +39,12 @@ namespace SharpNBT
         /// </summary>
         public FormatOptions FormatOptions { get; }
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="TagIO"/> class.
+        /// </summary>
+        /// <param name="stream">A <see cref="Stream"/> instance that the writer will be writing to.</param>
+        /// <param name="options">Bitwise flags to configure how data should be handled for compatibility between different specifications.</param>
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="stream"/> is <see langword="null"/></exception>
         protected TagIO([NotNull] Stream stream,  FormatOptions options)
         {
             BaseStream = stream ?? throw new ArgumentNullException(nameof(stream));

@@ -13,7 +13,14 @@ namespace SharpNBT
     [PublicAPI][Serializable]
     public abstract class TagContainer : EnumerableTag<Tag>
     {
+        /// <summary>
+        /// A value indicating if children of this container are required to have be named.
+        /// </summary>
         protected bool NamedChildren;
+        
+        /// <summary>
+        /// When not <see langword="null"/>, indicates that a child must be of a specific type to be added.
+        /// </summary>
         protected TagType? RequiredType;
 
         /// <summary>

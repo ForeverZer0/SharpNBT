@@ -19,6 +19,7 @@ namespace SharpNBT
         /// <inheritdoc cref="object.ToString"/>
         public override string ToString() => $"TAG_End";
 
+        /// <inheritdoc />
         protected internal override void PrettyPrinted(StringBuilder buffer, int level, string indent)
         {
             // Do nothing

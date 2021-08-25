@@ -106,6 +106,9 @@ namespace SharpNBT
             await buffer.CopyToAsync(stream);
         }
 
+        /// <summary>
+        /// Implicit conversion of <see cref="BufferedTagWriter"/> to a <see cref="ReadOnlySpan{T}"/>.
+        /// </summary>
         public static implicit operator ReadOnlySpan<byte>(BufferedTagWriter writer)
         {
             writer.BaseStream.Flush();

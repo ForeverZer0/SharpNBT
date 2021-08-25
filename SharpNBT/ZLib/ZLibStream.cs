@@ -16,7 +16,14 @@ namespace SharpNBT.ZLib
     [PublicAPI]
     public class ZLibStream : Stream
     {
+        /// <summary>
+        /// The internal DEFLATE stream used for compression/decompression.
+        /// </summary>
         protected readonly DeflateStream DeflateStream;
+        
+        /// <summary>
+        /// The base stream the ZlibStream is wrapping.
+        /// </summary>
         protected readonly Stream BaseStream;
         
         private readonly CompressionMode compressionMode;
