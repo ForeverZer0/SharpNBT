@@ -25,11 +25,84 @@ A CLS-compliant implementation of the Named Binary Tag (NBT) specifications (Jav
 
 ### Reading
 
-Reading an NBT document can be as simple as a one-liner:
+At its simplest, reading an NBT document is one-liner:
 
 ```csharp
 CompoundTag tag = NbtFile.Read("/path/to/file.nbt", FormatOptions.Java, CompressionType.AutoDetect);
 ```
+### Writing
+
+Likewise writing a completed NBT tag is a one-liner:
+```csharp
+// Assuming "tag" is a valid variable
+NbtFile.Write("/path/to/file.nbt", tag, FormatOptions.BedrockFile, CompressionType.ZLib);
+```
+
+### Viewing
+
+While there is functionality to output NBT to other human-readable formats like JSON, if you simply need to visualize a tag, there is a custom "pretty printed" output you can use:
+
+[bigtest.nbt](https://raw.github.com/Dav1dde/nbd/master/test/bigtest.nbt) from https://wiki.vg/
+
+```csharp
+
+var tag = NbtFile.Read("bigtest.nbt", FormatOptions.Java, CompressionType.GZip);
+Console.WriteLine(tag.PrettyPrinted())
+```
+
+#### Output
+
+```
+TAG_Compound("Level"): [11 entries]
+{
+    TAG_Long("longTest"): 9223372036854775807
+    TAG_Short("shortTest"): 32767
+    TAG_String("stringTest"): "HELLO WORLD THIS IS A TEST STRING ÅÄÖ!"
+    TAG_Float("floatTest"): 0.49823147
+    TAG_Int("intTest"): 2147483647
+    TAG_Compound("nested compound test"): [2 entries]
+    {
+        TAG_Compound("ham"): [2 entries]
+        {
+            TAG_String("name"): "Hampus"
+            TAG_Float("value"): 0.75
+        }
+        TAG_Compound("egg"): [2 entries]
+        {
+            TAG_String("name"): "Eggbert"
+            TAG_Float("value"): 0.5
+        }
+    }
+    TAG_List("listTest (long)"): [5 entries]
+    {
+        TAG_Long(None): 11
+        TAG_Long(None): 12
+        TAG_Long(None): 13
+        TAG_Long(None): 14
+        TAG_Long(None): 15
+    }
+    TAG_List("listTest (compound)"): [2 entries]
+    {
+        TAG_Compound(None): [2 entries]
+        {
+            TAG_String("name"): "Compound tag #0"
+            TAG_Long("created-on"): 1264099775885
+        }
+        TAG_Compound(None): [2 entries]
+        {
+            TAG_String("name"): "Compound tag #1"
+            TAG_Long("created-on"): 1264099775885
+        }
+    }
+    TAG_Byte("byteTest"): 127
+    TAG_Byte_Array("byteArrayTest (the first 1000 values of (n*n*255+n*7)%100, starting with n=0 (0, 62, 34, 16, 8, ...))"): [1000 elements]
+    TAG_Double("doubleTest"): 0.4931287132182315
+}
+```
+
+### Much More!
+
+There is much more to SharpNBT than the examples above, please see [the wiki](https://github.com/ForeverZer0/SharpNBT/wiki) for more details, with real-world examples.
 
 ## Contributing
 
