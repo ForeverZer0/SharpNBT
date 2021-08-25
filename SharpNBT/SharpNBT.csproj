@@ -10,7 +10,7 @@
         <RepositoryUrl>https://github.com/ForeverZer0/SharpNBT</RepositoryUrl>
         <RepositoryType>git</RepositoryType>
         <PackageIcon>icon.png</PackageIcon>
-        <PackageTags>nbt;named binary tag;minecraft;serialization</PackageTags>
+        <PackageTags>nbt;named binary tag;minecraft;serialization;java;bedrock;pocket edition;varint;varlong</PackageTags>
     </PropertyGroup>
     
     <ItemGroup>

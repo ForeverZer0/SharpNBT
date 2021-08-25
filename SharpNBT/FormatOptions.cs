@@ -14,21 +14,47 @@ namespace SharpNBT
     [PublicAPI][Flags]
     public enum FormatOptions
     {
+        /// <summary>
+        /// None/invalid option flags.
+        /// </summary>
         None = 0,
         
+        /// <summary>
+        /// Numeric values will be read/written in big-endian format.
+        /// </summary>
+        /// <remarks>This is the default for the Java edition of Minecraft.</remarks>
         BigEndian = 0x01,
         
+        /// <summary>
+        /// Numeric values will be read/written in little-endian format.
+        /// </summary>
+        /// <remarks>This is the default for Bedrock editions of Minecraft.</remarks>
         LittleEndian = 0x02,
         
+        /// <summary>
+        /// Integer types will be read/written as variable-length integers.
+        /// </summary>
         VarIntegers = 0x04,
         
+        /// <summary>
+        /// Variable-length integers will be written using ZigZag encoding.
+        /// </summary>
+        /// <see href="http://neurocline.github.io/dev/2015/09/17/zig-zag-encoding.html"/>
         ZigZagEncoding = 0x08,
         
-        
+        /// <summary>
+        /// Flags for using a format compatible with Java editions of Minecraft.
+        /// </summary>
         Java = BigEndian,
         
+        /// <summary>
+        /// Flags for using a format compatible with Bedrock editions of Minecraft when writing to a file.
+        /// </summary>
         BedrockFile = LittleEndian,
         
+        /// <summary>
+        /// Flags for using a format compatible with Bedrock editions of Minecraft when transporting across a network..
+        /// </summary>
         BedrockNetwork = LittleEndian | VarIntegers | ZigZagEncoding
     }
 }
