@@ -12,6 +12,10 @@
         <PackageIcon>icon.png</PackageIcon>
         <PackageTags>nbt;named binary tag;minecraft;serialization;java;bedrock;pocket edition;varint;varlong</PackageTags>
     </PropertyGroup>
+
+    <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
+      <DocumentationFile>bin\Release\netstandard2.1\SharpNBT.xml</DocumentationFile>
+    </PropertyGroup>
     
     <ItemGroup>
         <None Include="icon.png" Pack="true" Visible="true" PackagePath="" />

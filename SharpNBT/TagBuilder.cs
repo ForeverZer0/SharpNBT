@@ -243,17 +243,7 @@ namespace SharpNBT
 
         /// <inheritdoc cref="AddIntArray(int[])"/>
         public TagBuilder AddIntArray([NotNull] IEnumerable<int> values) => AddIntArray(null, values.ToArray());
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
+
         /// <summary>
         /// Adds a new <see cref="LongArrayTag"/> with the specified <paramref name="values"/> to the tree at the current depth.
         /// </summary>
@@ -274,14 +264,7 @@ namespace SharpNBT
 
         /// <inheritdoc cref="AddLongArray(long[])"/>
         public TagBuilder AddLongArray([NotNull] IEnumerable<long> values) => AddLongArray(null, values.ToArray());
-        
-        
-        
-        
-        
-        
-        
-        
+
         /// <summary>
         /// Adds an existing <see cref="Tag"/> object to the tree at the current depth.
         /// </summary>

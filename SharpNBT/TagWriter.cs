@@ -16,12 +16,6 @@ namespace SharpNBT
     public class TagWriter : TagIO
     {
         private readonly bool leaveOpen;
-        
-        /// <summary>
-        /// Gets the underlying stream this <see cref="TagReader"/> is operating on.
-        /// </summary>
-        [NotNull]
-        protected Stream BaseStream { get; }
 
         /// <summary>
         /// Creates a new instance of the <see cref="TagWriter"/> class from the given <paramref name="stream"/>.
@@ -31,9 +25,8 @@ namespace SharpNBT
         /// <param name="leaveOpen">
         /// <paramref langword="true"/> to leave the <paramref name="stream"/> object open after disposing the <see cref="TagWriter"/>
         /// object; otherwise, <see langword="false"/>.</param>
-        public TagWriter([NotNull] Stream stream, FormatOptions options, bool leaveOpen = false) : base(options)
+        public TagWriter([NotNull] Stream stream, FormatOptions options, bool leaveOpen = false) : base(stream, options)
         {
-            BaseStream = stream ?? throw new ArgumentNullException(nameof(stream));
             if (!stream.CanWrite)
                 throw new IOException("Stream is not opened for writing.");
             this.leaveOpen = leaveOpen;

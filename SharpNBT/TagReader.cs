@@ -18,14 +18,11 @@ namespace SharpNBT
         /// </summary>
         public event TagReaderCallback<TagEventArgs> TagRead;
 
-        public event TagReaderCallback<TagHandledEventArgs> TagEncountered; 
-
         /// <summary>
-        /// Gets the underlying stream this <see cref="TagReader"/> is operating on.
+        /// Occurs when a tag has been encountered in the stream, after reading the first byte to determine its <see cref="TagType"/>.
         /// </summary>
-        [NotNull]
-        protected Stream BaseStream { get; }
-        
+        public event TagReaderCallback<TagHandledEventArgs> TagEncountered;
+
         private readonly bool leaveOpen;
 
         /// <summary>
@@ -36,9 +33,8 @@ namespace SharpNBT
         /// <param name="leaveOpen">
         /// <paramref langword="true"/> to leave the <paramref name="stream"/> object open after disposing the <see cref="TagReader"/>
         /// object; otherwise, <see langword="false"/>.</param>
-        public TagReader([NotNull] Stream stream, FormatOptions options, bool leaveOpen = false) : base(options)
+        public TagReader([NotNull] Stream stream, FormatOptions options, bool leaveOpen = false) : base(stream, options)
         {
-            BaseStream = stream ?? throw new ArgumentNullException(nameof(stream));
             if (!stream.CanRead)
                 throw new IOException("Stream is not opened for reading.");
             this.leaveOpen = leaveOpen;
@@ -447,11 +443,17 @@ namespace SharpNBT
         }
 
         /// <summary>
-        /// Invokes the <see cref="TagRead"/> event when a tag has been fully deserialized from the <see cref="BaseStream"/>.
+        /// Invokes the <see cref="TagRead"/> event when a tag has been fully deserialized from the <see cref="TagIO.BaseStream"/>.
         /// </summary>
         /// <param name="tag">The deserialized <see cref="Tag"/> instance.</param>
         protected virtual void OnTagRead(Tag tag) =>  TagRead?.Invoke(this, new TagEventArgs(tag.Type, tag));
 
+        /// <summary>
+        /// Invokes the <see cref="TagEncountered"/> event when the stream is positioned at the beginning of a an unread tag.
+        /// </summary>
+        /// <param name="type">The type of tag next to be read from the stream.</param>
+        /// <param name="named">Flag indicating if this tag is named.</param>
+        /// <returns>When handled by an event subscriber, returns a parsed <see cref="Tag"/> instance, otherwise returns <param langword="null">.</param></returns>
         [CanBeNull]
         protected virtual Tag OnTagEncountered(TagType type, bool named)
         {
