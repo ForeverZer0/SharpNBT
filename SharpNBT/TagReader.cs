@@ -13,7 +13,6 @@ namespace SharpNBT
     /// <seealso cref="TagReader.TagRead"/>
     public delegate void TagReadCallback(TagReader reader, TagType type, Tag tag);
     
-
     /// <summary>
     /// Provides methods for reading NBT data from a stream.
     /// </summary>
@@ -34,7 +33,7 @@ namespace SharpNBT
         private readonly bool leaveOpen;
 
         /// <summary>
-        /// Creates a new instance of the <see cref="TagReader"/> class from the given uncompressed <paramref name="stream"/>.
+        /// Creates a new instance of the <see cref="TagReader"/> class from the given <paramref name="stream"/>.
         /// </summary>
         /// <param name="stream">A <see cref="Stream"/> instance that the reader will be reading from.</param>
         /// <param name="options">Bitwise flags to configure how data should be handled for compatibility between different specifications.</param>
@@ -385,18 +384,7 @@ namespace SharpNBT
                 return TagType.End;
             }
         }
-        
-        
-        
-        
 
-        
-        
-        
-        
-        
-        
-        
         /// <summary>
         /// Reads a length-prefixed UTF-8 string from the stream.
         /// </summary>
@@ -449,7 +437,7 @@ namespace SharpNBT
         /// <summary>
         /// Asynchronously releases the unmanaged resources used by the <see cref="TagReader"/>.
         /// </summary>
-        public async ValueTask DisposeAsync()
+        public override async ValueTask DisposeAsync()
         {
             if (!leaveOpen)
                 await BaseStream.DisposeAsync();

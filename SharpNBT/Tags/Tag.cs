@@ -22,6 +22,7 @@ namespace SharpNBT
             {
                 typeof(TagType),
                 typeof(Tag<>),
+                typeof(Tag[]),
                 typeof(EnumerableTag<>),
                 typeof(TagContainer),
                 typeof(ByteTag),
@@ -111,20 +112,6 @@ namespace SharpNBT
             {
                 serializer.WriteObject(stream, this);
             }
-            stream.Flush();
-            return Encoding.UTF8.GetString(stream.ToArray());
-        }
-        
-        public string ToXmlString()
-        {
-            var settings = new DataContractSerializerSettings
-            {
-                KnownTypes = GetKnownTypes()
-            };
-            var serializer = new DataContractSerializer(typeof(Tag), settings);
-            using var stream = new MemoryStream();
-           
-            serializer.WriteObject(stream, this);
             stream.Flush();
             return Encoding.UTF8.GetString(stream.ToArray());
         }

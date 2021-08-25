@@ -297,7 +297,7 @@ namespace SharpNBT
         /// <summary>
         /// Asynchronously releases the unmanaged resources used by the <see cref="TagReader"/>.
         /// </summary>
-        public async ValueTask DisposeAsync()
+        public override async ValueTask DisposeAsync()
         {
             await BaseStream.FlushAsync();
             if (!leaveOpen)

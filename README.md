@@ -19,8 +19,6 @@ A CLS-compliant implementation of the Named Binary Tag (NBT) specifications (Jav
     * Xamarin.Mac 5.16
     * Xamarin.Android 10.0
     * Unity 2021.2.0b6
-* **No Dependencies:** No reliance on third-party libraries. 
-* **Format Conversion:** Can convert NBT to/from JSON and XML formats.
 
 ## Usage
 

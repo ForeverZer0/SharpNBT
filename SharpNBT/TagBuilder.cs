@@ -223,11 +223,6 @@ namespace SharpNBT
         public TagBuilder AddByteArray([NotNull] IEnumerable<sbyte> values) => AddByteArray(null, values.ToArray());
         
         
-        
-        
-        
-        
-        
         /// <summary>
         /// Adds a new <see cref="IntArrayTag"/> with the specified <paramref name="values"/> to the tree at the current depth.
         /// </summary>
@@ -297,19 +292,6 @@ namespace SharpNBT
         public TagBuilder AddTag([NotNull] Tag tag)
         {
             var top = tree.Peek();
-            if (top is ListTag list)
-            {
-                if (list.ChildType != tag.Type)
-                    throw new ArgumentException("Tag type does not match the child type of parent ListTag.", nameof(tag));
-                if (tag.Name != null)
-                    throw new ArgumentException("Child tags within a ListTag must not be named.");
-            }
-            else if (top is CompoundTag)
-            {
-                if (tag.Name == null)
-                    throw new FormatException("Child tags within a CompoundTag must have a named.");
-            }
-            
             top.Add(tag ?? throw new ArgumentNullException(nameof(tag)));
             return this;
         }

@@ -1,4 +1,5 @@
 using System;
+using System.Threading.Tasks;
 using JetBrains.Annotations;
 
 namespace SharpNBT
@@ -46,6 +47,11 @@ namespace SharpNBT
         /// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
         /// </summary>
         public abstract void Dispose();
-        
+
+        /// <summary>
+        /// Asynchronously releases the unmanaged resources used by the <see cref="TagIO"/> instance.
+        /// </summary>
+        public abstract ValueTask DisposeAsync();
+
     }
 }
