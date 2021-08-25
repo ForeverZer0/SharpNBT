@@ -6,6 +6,7 @@ namespace SharpNBT
     /// <summary>
     /// Arguments supplied with tag-related events.
     /// </summary>
+    [PublicAPI]
     public class TagEventArgs : EventArgs
     {
         /// <summary>

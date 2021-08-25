@@ -8,6 +8,7 @@ namespace SharpNBT
     /// <summary>
     /// Arguments supplied when an event that can be handled by an event subscriber.
     /// </summary>
+    [PublicAPI]
     public class TagHandledEventArgs : HandledEventArgs
     {
         /// <summary>
