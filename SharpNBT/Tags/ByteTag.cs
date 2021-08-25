@@ -1,4 +1,5 @@
 using System;
+using System.Runtime.Serialization;
 using JetBrains.Annotations;
 
 namespace SharpNBT
@@ -39,6 +40,15 @@ namespace SharpNBT
         /// <inheritdoc cref="ByteTag(string,byte)"/>
         [CLSCompliant(false)]
         public ByteTag([CanBeNull] string name, sbyte value) : base(TagType.Byte, name, unchecked((byte) value))
+        {
+        }
+        
+        /// <summary>
+        /// Required constructor for ISerializable implementation.
+        /// </summary>
+        /// <param name="info">The <see cref="T:System.Runtime.Serialization.SerializationInfo" /> to describing this instance.</param>
+        /// <param name="context">The destination (see <see cref="T:System.Runtime.Serialization.StreamingContext" />) for this serialization.</param>
+        protected ByteTag(SerializationInfo info, StreamingContext context) : base(info, context)
         {
         }
         

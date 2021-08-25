@@ -1,4 +1,5 @@
 using System;
+using System.Runtime.Serialization;
 using JetBrains.Annotations;
 
 namespace SharpNBT
@@ -34,6 +35,15 @@ namespace SharpNBT
         /// <inheritdoc cref="ShortTag(string,short)"/>
         [CLSCompliant(false)]
         public ShortTag([CanBeNull] string name, ushort value) : base(TagType.Short, name, unchecked((short) value))
+        {
+        }
+        
+        /// <summary>
+        /// Required constructor for ISerializable implementation.
+        /// </summary>
+        /// <param name="info">The <see cref="T:System.Runtime.Serialization.SerializationInfo" /> to describing this instance.</param>
+        /// <param name="context">The destination (see <see cref="T:System.Runtime.Serialization.StreamingContext" />) for this serialization.</param>
+        protected ShortTag(SerializationInfo info, StreamingContext context) : base(info, context)
         {
         }
         

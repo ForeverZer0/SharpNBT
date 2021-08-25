@@ -7,7 +7,7 @@ namespace SharpNBT
     /// Represents the end of <see cref="CompoundTag"/>.
     /// </summary>
     [PublicAPI]
-    public class EndTag : Tag
+    public sealed class EndTag : Tag
     {
         /// <summary>
         /// Creates a new instance of the <see cref="EndTag"/> class.

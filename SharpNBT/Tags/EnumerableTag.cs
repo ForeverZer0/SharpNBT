@@ -62,6 +62,11 @@ namespace SharpNBT
             internalList.AddRange(values.ToArray());
         }
 
+        /// <summary>
+        /// Required constructor for ISerializable implementation.
+        /// </summary>
+        /// <param name="info">The <see cref="T:System.Runtime.Serialization.SerializationInfo" /> to describing this instance.</param>
+        /// <param name="context">The destination (see <see cref="T:System.Runtime.Serialization.StreamingContext" />) for this serialization.</param>
         protected EnumerableTag(SerializationInfo info, StreamingContext context) : base(info, context)
         {
             var dummy = info.GetInt32("count");

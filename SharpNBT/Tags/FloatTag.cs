@@ -1,4 +1,5 @@
 using System;
+using System.Runtime.Serialization;
 using JetBrains.Annotations;
 
 namespace SharpNBT
@@ -17,6 +18,15 @@ namespace SharpNBT
         public FloatTag([CanBeNull] string name, float value) : base(TagType.Float, name, value)
         {
         }
+        /// <summary>
+        /// Required constructor for ISerializable implementation.
+        /// </summary>
+        /// <param name="info">The <see cref="T:System.Runtime.Serialization.SerializationInfo" /> to describing this instance.</param>
+        /// <param name="context">The destination (see <see cref="T:System.Runtime.Serialization.StreamingContext" />) for this serialization.</param>
+        protected FloatTag(SerializationInfo info, StreamingContext context) : base(info, context)
+        {
+        }
+        
         
         /// <inheritdoc cref="object.ToString"/>
         public override string ToString() => $"TAG_Float({PrettyName}): {Value}";

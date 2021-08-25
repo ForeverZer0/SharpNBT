@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Runtime.Serialization;
 using System.Text;
 using JetBrains.Annotations;
 
@@ -33,6 +34,15 @@ namespace SharpNBT
         public CompoundTag([CanBeNull] string name, [NotNull] IEnumerable<Tag> values) : this(name)
         {
             AddRange(values);
+        }
+        
+        /// <summary>
+        /// Required constructor for ISerializable implementation.
+        /// </summary>
+        /// <param name="info">The <see cref="T:System.Runtime.Serialization.SerializationInfo" /> to describing this instance.</param>
+        /// <param name="context">The destination (see <see cref="T:System.Runtime.Serialization.StreamingContext" />) for this serialization.</param>
+        protected CompoundTag(SerializationInfo info, StreamingContext context) : base(info, context)
+        {
         }
 
         /// <summary>Returns a string that represents the current object.</summary>

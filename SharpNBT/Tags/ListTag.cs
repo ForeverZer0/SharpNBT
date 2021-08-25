@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Runtime.Serialization;
 using System.Text;
 using JetBrains.Annotations;
 
@@ -40,6 +41,15 @@ namespace SharpNBT
         public ListTag([CanBeNull] string name, TagType childType, [NotNull][ItemNotNull] IEnumerable<Tag> children) : this(name, childType)
         {
             AddRange(children);
+        }
+        
+        /// <summary>
+        /// Required constructor for ISerializable implementation.
+        /// </summary>
+        /// <param name="info">The <see cref="T:System.Runtime.Serialization.SerializationInfo" /> to describing this instance.</param>
+        /// <param name="context">The destination (see <see cref="T:System.Runtime.Serialization.StreamingContext" />) for this serialization.</param>
+        protected ListTag(SerializationInfo info, StreamingContext context) : base(info, context)
+        {
         }
 
         /// <inheritdoc cref="object.ToString"/>

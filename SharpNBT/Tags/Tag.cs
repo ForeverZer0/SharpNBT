@@ -153,7 +153,12 @@ namespace SharpNBT
                 // ReSharper restore NonReadonlyMemberInGetHashCode
             }
         }
-
+        
+        /// <summary>
+        /// Required constructor for ISerializable implementation.
+        /// </summary>
+        /// <param name="info">The <see cref="T:System.Runtime.Serialization.SerializationInfo" /> to describing this instance.</param>
+        /// <param name="context">The destination (see <see cref="T:System.Runtime.Serialization.StreamingContext" />) for this serialization.</param>
         protected Tag(SerializationInfo info, StreamingContext context)
         {
             Type = (TagType) info.GetByte("type");
@@ -187,6 +192,11 @@ namespace SharpNBT
         /// </summary>
         public T Value { get; set; }
         
+        /// <summary>
+        /// Required constructor for ISerializable implementation.
+        /// </summary>
+        /// <param name="info">The <see cref="T:System.Runtime.Serialization.SerializationInfo" /> to describing this instance.</param>
+        /// <param name="context">The destination (see <see cref="T:System.Runtime.Serialization.StreamingContext" />) for this serialization.</param>
         protected Tag(SerializationInfo info, StreamingContext context) : base(info, context)
         {
             Value = (T)info.GetValue("value", typeof(T));

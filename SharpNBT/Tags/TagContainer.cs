@@ -35,6 +35,11 @@ namespace SharpNBT
         {
         }
         
+        /// <summary>
+        /// Required constructor for ISerializable implementation.
+        /// </summary>
+        /// <param name="info">The <see cref="T:System.Runtime.Serialization.SerializationInfo" /> to describing this instance.</param>
+        /// <param name="context">The destination (see <see cref="T:System.Runtime.Serialization.StreamingContext" />) for this serialization.</param>
         protected TagContainer(SerializationInfo info, StreamingContext context) : base(info, context)
         {
             RequiredType = (TagType?) info.GetValue("child_type", typeof(TagType?));

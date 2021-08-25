@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Runtime.Serialization;
 using JetBrains.Annotations;
 
 namespace SharpNBT
@@ -38,6 +39,15 @@ namespace SharpNBT
         /// <param name="name">The name of the tag, or <see langword="null"/> if tag has no name.</param>
         /// <param name="values">A collection of values to include in this tag.</param>
         public ByteArrayTag([CanBeNull] string name, ReadOnlySpan<byte> values) : base(TagType.ByteArray, name, values)
+        {
+        }
+        
+        /// <summary>
+        /// Required constructor for ISerializable implementation.
+        /// </summary>
+        /// <param name="info">The <see cref="T:System.Runtime.Serialization.SerializationInfo" /> to describing this instance.</param>
+        /// <param name="context">The destination (see <see cref="T:System.Runtime.Serialization.StreamingContext" />) for this serialization.</param>
+        protected ByteArrayTag(SerializationInfo info, StreamingContext context) : base(info, context)
         {
         }
 

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Runtime.Serialization;
 using JetBrains.Annotations;
 
 namespace SharpNBT
@@ -26,6 +27,14 @@ namespace SharpNBT
         {
         }
         
+        /// <summary>
+        /// Required constructor for ISerializable implementation.
+        /// </summary>
+        /// <param name="info">The <see cref="T:System.Runtime.Serialization.SerializationInfo" /> to describing this instance.</param>
+        /// <param name="context">The destination (see <see cref="T:System.Runtime.Serialization.StreamingContext" />) for this serialization.</param>
+        protected LongArrayTag(SerializationInfo info, StreamingContext context) : base(info, context)
+        {
+        }
         
         /// <summary>
         /// Initializes a new instance of the <see cref="LongArrayTag"/> with the specified <paramref name="values"/>.
