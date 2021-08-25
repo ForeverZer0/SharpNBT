@@ -23,6 +23,8 @@ A CLS-compliant implementation of the Named Binary Tag (NBT) specifications (Jav
 
 ## Usage
 
+Please see [the wiki](https://github.com/ForeverZer0/SharpNBT/wiki) for more detailed explanations. Feel free to improve it by contributing!
+
 ### Reading
 
 At its simplest, reading an NBT document is one-liner:
@@ -120,4 +122,4 @@ Everyone interacting in the SharpNBT project’s codebases, issue trackers, chat
 
 ## Special Thanks
 
-This project would not be possible without all the contributors to the https://wiki.vg/ and its maintainers, who have created an invaluable source of information for developers for everything related to the game of Minecraft.
+This project would not be possible without all the contributors to the https://wiki.vg/ site and its maintainers, who have created an invaluable source of information for developers for everything related to the game of Minecraft.
