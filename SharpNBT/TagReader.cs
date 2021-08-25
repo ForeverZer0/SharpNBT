@@ -7,12 +7,7 @@ using JetBrains.Annotations;
 
 namespace SharpNBT
 {
-    /// <summary>
-    /// Delegate type for tag-related events that can occur within the <see cref="TagReader"/> class.
-    /// </summary>
-    /// <seealso cref="TagReader.TagRead"/>
-    public delegate void TagReadCallback(TagReader reader, TagType type, Tag tag);
-    
+
     /// <summary>
     /// Provides methods for reading NBT data from a stream.
     /// </summary>
@@ -22,7 +17,9 @@ namespace SharpNBT
         /// <summary>
         /// Occurs when a tag has been fully deserialized from the stream.
         /// </summary>
-        public event TagReadCallback TagRead;
+        public event TagReaderCallback<TagEventArgs> TagRead;
+
+        public event TagReaderCallback<TagHandledEventArgs> TagEncountered; 
 
         /// <summary>
         /// Gets the underlying stream this <see cref="TagReader"/> is operating on.
@@ -351,6 +348,13 @@ namespace SharpNBT
         [NotNull] 
         private Tag ReadTag(TagType type, bool named)
         {
+            var result = OnTagEncountered(type, named);
+            if (result != null)
+            {
+                OnTagRead(result);
+                return result;
+            }
+
             Tag tag = type switch
             {
                 TagType.End => new EndTag(),
@@ -447,7 +451,19 @@ namespace SharpNBT
         /// Invokes the <see cref="TagRead"/> event when a tag has been fully deserialized from the <see cref="BaseStream"/>.
         /// </summary>
         /// <param name="tag">The deserialized <see cref="Tag"/> instance.</param>
-        protected virtual void OnTagRead(Tag tag) =>  TagRead?.Invoke(this, tag.Type, tag);
+        protected virtual void OnTagRead(Tag tag) =>  TagRead?.Invoke(this, new TagEventArgs(tag.Type, tag));
+
+        [CanBeNull]
+        protected virtual Tag OnTagEncountered(TagType type, bool named)
+        {
+            // Early out if no subscribers.
+            if (TagEncountered is null)
+                return null;
+            
+            var args = new TagHandledEventArgs(type, named, BaseStream);
+            TagEncountered.Invoke(this, args);
+            return args.Handled ? args.Result : null;
+        }
         
     }
 }
