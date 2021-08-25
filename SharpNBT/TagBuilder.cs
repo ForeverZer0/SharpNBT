@@ -376,5 +376,62 @@ namespace SharpNBT
             tree.Push(root);
             return root;
         }
+
+        /// <summary>
+        /// Creates a new <see cref="CompoundTag"/> and pushes it to the current scope level, returning a <see cref="Context"/> object that pulls the current
+        /// scope back out one level when disposed.
+        /// </summary>
+        /// <param name="name">The name to apply to the <see cref="ListTag"/>, or <see langword="null"/> to omit a name.</param>
+        /// <returns>A <see cref="Context"/> that will close the <see cref="CompoundTag"/> when disposed.</returns>
+        /// <remarks>This is essentially no different than <see cref="BeginCompound"/> and <see cref="EndCompound"/> but can use `using` blocks to distinguish scope.</remarks>
+        public Context NewCompound([CanBeNull] string name)
+        {
+            BeginCompound(name);
+            return new Context(tree.Peek(), EndCompound);
+        }
+        
+        /// <summary>
+        /// Creates a new <see cref="ListTag"/> and pushes it to the current scope level, returning a <see cref="Context"/> object that pulls the current
+        /// scope back out one level when disposed.
+        /// </summary>
+        /// <param name="childType">The <see cref="TagType"/> of the child items this list will contain.</param>
+        /// <param name="name">The name to apply to the <see cref="ListTag"/>, or <see langword="null"/> to omit a name.</param>
+        /// <returns>A <see cref="Context"/> that will close the <see cref="ListTag"/> when disposed.</returns>
+        /// <remarks>This is essentially no different than <see cref="BeginList"/> and <see cref="EndList"/> but can use `using` blocks to distinguish scope.</remarks>
+        public Context NewList(TagType childType, [CanBeNull] string name)
+        {
+            BeginList(childType, name);
+            return new Context(tree.Peek(), EndList);
+        }
+
+        /// <summary>
+        /// Represents the context of a single "level" of depth into a <see cref="TagBuilder"/> AST.
+        /// </summary>
+        /// <remarks>Implements <see cref="IDisposable"/> to that each node can used with <c>using</c> statements for easily distinguishable scope.</remarks>
+        [PublicAPI]
+        public class Context: IDisposable 
+        {
+            internal delegate TagBuilder CloseHandler();
+            private readonly CloseHandler closeHandler;
+            
+            /// <summary>
+            /// Gets the top-level tag for this context.
+            /// </summary>
+            [NotNull]
+            public TagContainer Tag { get; }
+
+            internal Context([NotNull] TagContainer tag, [NotNull] CloseHandler handler)
+            {
+                Tag = tag;
+                closeHandler = handler;
+            }
+
+            /// <summary>Closes this context.</summary>
+            public void Dispose()
+            {
+                Console.WriteLine(Tag);
+                closeHandler.Invoke();
+            }
+        }
     }
 }
