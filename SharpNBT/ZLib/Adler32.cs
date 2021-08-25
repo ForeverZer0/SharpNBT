@@ -1,12 +1,14 @@
 using System;
 using System.Runtime.CompilerServices;
+using JetBrains.Annotations;
 
 namespace SharpNBT.ZLib
 {
     /// <summary>
     /// An Adler-32 checksum implementation for ZLib streams.
     /// </summary>
-    /// <seealso href=""/>
+    /// <seealso href="https://en.wikipedia.org/wiki/Adler-32"/>
+    [PublicAPI]
     public sealed class Adler32
     {
         private uint a = 1;
@@ -89,7 +91,7 @@ namespace SharpNBT.ZLib
         }
         
         /// <summary>
-        /// Gets the current calculated checksum value as an unsigned 32-bit integer.
+        /// Gets the current calculated checksum value as the original unsigned 32-bit integer value.
         /// </summary>
         [CLSCompliant(false)]
         public uint UnsignedValue
