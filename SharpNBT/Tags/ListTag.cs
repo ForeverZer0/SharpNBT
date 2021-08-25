@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Runtime.Serialization;
 using System.Text;
@@ -11,13 +12,12 @@ namespace SharpNBT
     /// <remarks>
     /// All child tags <b>must</b> be have the same <see cref="Tag.Type"/> value, and their <see cref="Tag.Name"/> value will be omitted during serialization.
     /// </remarks>
-    [PublicAPI][DataContract(Name = "list")]
+    [PublicAPI][Serializable]
     public class ListTag : TagContainer
     {
         /// <summary>
         /// Gets the NBT type of this tag's children.
         /// </summary>
-        [DataMember(IsRequired = true, Name = "child_type", Order = 2)]
         public TagType ChildType { get; private set; }
 
         /// <summary>

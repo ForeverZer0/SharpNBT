@@ -12,13 +12,12 @@ namespace SharpNBT
     /// Base class for tags that contain a collection of values and can be enumerated.
     /// </summary>
     /// <typeparam name="T">The type of the item the tag contains.</typeparam>
-    [PublicAPI][DataContract(Name = "array")]
+    [PublicAPI][Serializable]
     public abstract class EnumerableTag<T> : Tag, IList<T>
     {
         /// <summary>
         /// Internal list implementation.
         /// </summary>
-        [DataMember(Name = "values")] 
         private readonly List<T> internalList = new List<T>();
 
         /// <summary>
@@ -61,6 +60,23 @@ namespace SharpNBT
         protected EnumerableTag(TagType type, [CanBeNull] string name, ReadOnlySpan<T> values) : base(type, name)
         {
             internalList.AddRange(values.ToArray());
+        }
+
+        protected EnumerableTag(SerializationInfo info, StreamingContext context) : base(info, context)
+        {
+            var dummy = info.GetInt32("count");
+            internalList.AddRange((T[]) info.GetValue("values", typeof(T[])));
+        }
+
+        /// <summary>Populates a <see cref="T:System.Runtime.Serialization.SerializationInfo" /> with the data needed to serialize the target object.</summary>
+        /// <param name="info">The <see cref="T:System.Runtime.Serialization.SerializationInfo" /> to populate with data.</param>
+        /// <param name="context">The destination (see <see cref="T:System.Runtime.Serialization.StreamingContext" />) for this serialization.</param>
+        /// <exception cref="T:System.Security.SecurityException">The caller does not have the required permission.</exception>
+        public override void GetObjectData(SerializationInfo info, StreamingContext context)
+        {
+            base.GetObjectData(info, context);
+            info.AddValue("count", Count);
+            info.AddValue("values", internalList.ToArray(), typeof(T[]));
         }
 
         /// <summary>Returns an enumerator that iterates through the collection.</summary>

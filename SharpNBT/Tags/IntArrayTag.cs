@@ -8,7 +8,7 @@ namespace SharpNBT
     /// <summary>
     /// A tag that whose value is a contiguous sequence of 32-bit integers.
     /// </summary>
-    [PublicAPI][DataContract(Name = "int_array")]
+    [PublicAPI][Serializable]
     public class IntArrayTag : EnumerableTag<int>
     {
         /// <summary>

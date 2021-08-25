@@ -423,7 +423,7 @@ namespace SharpNBT
             return Encoding.UTF8.GetString(utf8);
         }
 
-        private int ReadCount() => UseVarInt ? ReadInt32() : VarInt.Read(BaseStream, ZigZagEncoding);
+        private int ReadCount() => UseVarInt ? VarInt.Read(BaseStream, ZigZagEncoding) : ReadInt32();
 
         /// <summary>
         /// Reads a 64-bit signed (big-endian) integer from the stream, converting to native endian when necessary.

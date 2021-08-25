@@ -13,8 +13,8 @@ namespace SharpNBT
     /// <summary>
     /// Abstract base class that all NBT tags inherit from.
     /// </summary>
-    [PublicAPI][DataContract][KnownType("GetKnownTypes")]
-    public abstract class Tag : IEquatable<Tag>
+    [PublicAPI][Serializable]
+    public abstract class Tag : IEquatable<Tag>, ISerializable
     {
         private static IEnumerable<Type> GetKnownTypes()
         {
@@ -47,7 +47,6 @@ namespace SharpNBT
         /// <summary>
         /// Gets a constant describing the NBT type this object represents.
         /// </summary>
-        [DataMember(IsRequired = true, Name = "type", Order = 0)]
         public TagType Type { get; private set; }
         
         /// <summary>
@@ -59,7 +58,6 @@ namespace SharpNBT
         /// <summary>
         /// Gets the name assigned to this <see cref="Tag"/>.
         /// </summary>
-        [DataMember(IsRequired = false, EmitDefaultValue = false, Name = "name")]
         [CanBeNull]
         public string Name { get; set; }
 
@@ -169,6 +167,22 @@ namespace SharpNBT
             }
         }
 
+        protected Tag(SerializationInfo info, StreamingContext context)
+        {
+            Type = (TagType) info.GetByte("type");
+            Name = info.GetString("name");
+        }
+
+        /// <summary>Populates a <see cref="T:System.Runtime.Serialization.SerializationInfo" /> with the data needed to serialize the target object.</summary>
+        /// <param name="info">The <see cref="T:System.Runtime.Serialization.SerializationInfo" /> to populate with data.</param>
+        /// <param name="context">The destination (see <see cref="T:System.Runtime.Serialization.StreamingContext" />) for this serialization.</param>
+        /// <exception cref="T:System.Security.SecurityException">The caller does not have the required permission.</exception>
+        public virtual void GetObjectData(SerializationInfo info, StreamingContext context)
+        {
+            info.AddValue("type", (byte) Type);
+            info.AddValue("name", Name);
+        }
+
         public static bool operator ==(Tag left, Tag right) => Equals(left, right);
 
         public static bool operator !=(Tag left, Tag right) => !Equals(left, right);
@@ -178,14 +192,28 @@ namespace SharpNBT
     /// Abstract base class for <see cref="Tag"/> types that contain a single primitive value.
     /// </summary>
     /// <typeparam name="T">The type of the value the tag represents.</typeparam>
-    [PublicAPI][DataContract]
+    [PublicAPI][Serializable]
     public abstract class Tag<T> : Tag, IEquatable<Tag<T>>
     {
         /// <summary>
         /// Gets or sets the value of the tag.
         /// </summary>
-        [DataMember(IsRequired = false, Name = "value")]
         public T Value { get; set; }
+        
+        protected Tag(SerializationInfo info, StreamingContext context) : base(info, context)
+        {
+            Value = (T)info.GetValue("value", typeof(T));
+        }
+
+        /// <summary>Populates a <see cref="T:System.Runtime.Serialization.SerializationInfo" /> with the data needed to serialize the target object.</summary>
+        /// <param name="info">The <see cref="T:System.Runtime.Serialization.SerializationInfo" /> to populate with data.</param>
+        /// <param name="context">The destination (see <see cref="T:System.Runtime.Serialization.StreamingContext" />) for this serialization.</param>
+        /// <exception cref="T:System.Security.SecurityException">The caller does not have the required permission.</exception>
+        public override void GetObjectData(SerializationInfo info, StreamingContext context)
+        {
+            base.GetObjectData(info, context);
+            info.AddValue("value", Value, typeof(T));
+        }
 
         /// <summary>
         /// Creates a new instance of the <see cref="DoubleTag"/> class with the specified <paramref name="value"/>.

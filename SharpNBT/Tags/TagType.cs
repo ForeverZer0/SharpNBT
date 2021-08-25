@@ -1,3 +1,4 @@
+using System;
 using JetBrains.Annotations;
 
 namespace SharpNBT
@@ -5,7 +6,7 @@ namespace SharpNBT
     /// <summary>
     /// Strongly-typed numerical constants that are prefixed to tags to denote their type.
     /// </summary>
-    [PublicAPI]
+    [PublicAPI][Serializable]
     public enum TagType : byte
     {
         /// <summary>

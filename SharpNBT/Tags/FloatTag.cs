@@ -1,3 +1,4 @@
+using System;
 using System.Runtime.Serialization;
 using JetBrains.Annotations;
 
@@ -6,7 +7,7 @@ namespace SharpNBT
     /// <summary>
     /// A tag that contains a single IEEE-754 single-precision floating point number.
     /// </summary>
-    [PublicAPI][DataContract(Name = "float")]
+    [PublicAPI][Serializable]
     public class FloatTag : Tag<float>
     {
         /// <summary>

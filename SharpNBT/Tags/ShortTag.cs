@@ -7,7 +7,7 @@ namespace SharpNBT
     /// <summary>
     /// A tag that contains a single 16-bit integer value.
     /// </summary>
-    [PublicAPI][DataContract(Name = "short")]
+    [PublicAPI][Serializable]
     public class ShortTag : Tag<short>
     {
         /// <summary>

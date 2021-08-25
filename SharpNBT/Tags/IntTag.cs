@@ -7,7 +7,7 @@ namespace SharpNBT
     /// <summary>
     /// A tag that contains a single 32-bit integer value.
     /// </summary>
-    [PublicAPI][DataContract(Name = "int")]
+    [PublicAPI][Serializable]
     public class IntTag : Tag<int>
     {
         /// <summary>

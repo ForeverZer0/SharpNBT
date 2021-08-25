@@ -7,7 +7,7 @@ namespace SharpNBT
     /// <summary>
     /// Represents the end of <see cref="CompoundTag"/>.
     /// </summary>
-    [PublicAPI][DataContract(Name = "end")]
+    [PublicAPI]
     public class EndTag : Tag
     {
         /// <summary>

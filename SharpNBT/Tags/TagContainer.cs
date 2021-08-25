@@ -10,7 +10,7 @@ namespace SharpNBT
     /// <summary>
     /// Base class for tags that contain a collection of other <see cref="Tag"/> objects and can be enumerated.
     /// </summary>
-    [PublicAPI][DataContract]
+    [PublicAPI][Serializable]
     public abstract class TagContainer : EnumerableTag<Tag>
     {
         protected bool NamedChildren;
@@ -33,6 +33,23 @@ namespace SharpNBT
         /// <param name="values">A collection of values to include in this tag.</param>
         protected TagContainer(TagType type, [CanBeNull] string name, [NotNull][ItemNotNull] IEnumerable<Tag> values) : base(type, name, values)
         {
+        }
+        
+        protected TagContainer(SerializationInfo info, StreamingContext context) : base(info, context)
+        {
+            RequiredType = (TagType?) info.GetValue("child_type", typeof(TagType?));
+            NamedChildren = !RequiredType.HasValue;
+        }
+
+        /// <summary>Populates a <see cref="T:System.Runtime.Serialization.SerializationInfo" /> with the data needed to serialize the target object.</summary>
+        /// <param name="info">The <see cref="T:System.Runtime.Serialization.SerializationInfo" /> to populate with data.</param>
+        /// <param name="context">The destination (see <see cref="T:System.Runtime.Serialization.StreamingContext" />) for this serialization.</param>
+        /// <exception cref="T:System.Security.SecurityException">The caller does not have the required permission.</exception>
+        public override void GetObjectData(SerializationInfo info, StreamingContext context)
+        {
+            base.GetObjectData(info, context);
+            if (RequiredType.HasValue)
+                info.AddValue("child_type", RequiredType.Value);
         }
 
         /// <summary>Adds an item to the <see cref="T:System.Collections.Generic.ICollection`1" />.</summary>

@@ -12,7 +12,7 @@ namespace SharpNBT
     /// While this class uses the CLS compliant <see cref="byte"/> (0..255), the NBT specification uses a signed value with a range of -128..127, so ensure
     /// the bits are equivalent for your values.
     /// </remarks>
-    [PublicAPI][DataContract(Name = "byte_array")]
+    [PublicAPI][Serializable]
     public class ByteArrayTag : EnumerableTag<byte>
     {
         /// <summary>

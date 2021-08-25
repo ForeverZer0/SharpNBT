@@ -7,7 +7,7 @@ namespace SharpNBT
     /// <summary>
     /// A tag that contains a single 64-bit integer value.
     /// </summary>
-    [PublicAPI][DataContract(Name = "long")]
+    [PublicAPI][Serializable]
     public class LongTag : Tag<long>
     {
         /// <summary>

@@ -12,7 +12,7 @@ namespace SharpNBT
     /// recommended to use the <see cref="SignedValue"/> property if your language supports a signed 8-bit value, otherwise simply ensure the bits are
     /// equivalent.
     /// </remarks>
-    [PublicAPI][DataContract(Name = "byte")]
+    [PublicAPI][Serializable]
     public class ByteTag : Tag<byte>
     {
         /// <summary>

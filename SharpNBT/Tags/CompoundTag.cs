@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Runtime.Serialization;
 using System.Text;
@@ -12,7 +13,7 @@ namespace SharpNBT
     /// This along with the <see cref="ListTag"/> class define the structure of the NBT format. Children are not order-dependent, nor is order guaranteed. The
     /// closing <see cref="EndTag"/> does not require to be explicitly added, it will be added automatically during serialization. 
     /// </remarks>
-    [PublicAPI][DataContract(Name = "compound")]
+    [PublicAPI][Serializable]
     public class CompoundTag :  TagContainer
     {
         /// <summary>

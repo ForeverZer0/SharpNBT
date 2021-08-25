@@ -1,3 +1,4 @@
+using System;
 using System.Runtime.Serialization;
 using JetBrains.Annotations;
 
@@ -6,7 +7,7 @@ namespace SharpNBT
     /// <summary>
     /// A tag the contains a UTF-8 string.
     /// </summary>
-    [PublicAPI][DataContract(Name = "string")]
+    [PublicAPI][Serializable]
     public class StringTag : Tag<string>
     {
         /// <summary>

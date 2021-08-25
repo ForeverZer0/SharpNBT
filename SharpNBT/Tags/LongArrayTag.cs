@@ -8,7 +8,7 @@ namespace SharpNBT
     /// <summary>
     /// A tag that whose value is a contiguous sequence of 64-bit integers.
     /// </summary>
-    [PublicAPI][DataContract(Name = "long_array")]
+    [PublicAPI][Serializable]
     public class LongArrayTag : EnumerableTag<long>
     {
         /// <summary>
