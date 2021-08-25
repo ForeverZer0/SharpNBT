@@ -26,6 +26,7 @@ namespace SharpNBT
         /// <summary>
         /// Automatically detect compression using magic numbers.
         /// </summary>
+        /// <remarks>This is not a valid value when specifying a compression type for <b>writing</b>.</remarks>
         AutoDetect = 0xFF
     }
 

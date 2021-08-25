@@ -7,7 +7,6 @@ using SharpNBT.ZLib;
 
 namespace SharpNBT
 {
-
     /// <summary>
     /// Provides static convenience methods for working with NBT-formatted files, including both reading and writing.
     /// </summary>
