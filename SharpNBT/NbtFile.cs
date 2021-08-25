@@ -13,6 +13,21 @@ namespace SharpNBT
     [PublicAPI]
     public static class NbtFile
     {
+
+        /// <summary>
+        /// Reads a file at the given <paramref name="path"/> and deserializes the top-level <see cref="Tag"/> contained in the file.
+        /// </summary>
+        /// <param name="path">The path to the file to be read.</param>
+        /// <param name="compression">Indicates the compression algorithm used to compress the file.</param>
+        /// <param name="options">Bitwise flags to configure how data should be handled for compatibility between different specifications.</param>
+        /// <typeparam name="T">The type of tag to deserialize.</typeparam>
+        /// <returns>The deserialized <see cref="Tag"/> instance.</returns>
+        public static T Read<T>([NotNull] string path, FormatOptions options, CompressionType compression = CompressionType.AutoDetect) where T : TagContainer
+        {
+            using var reader = new TagReader(GetReadStream(path, compression), options);
+            return reader.ReadTag<T>();
+        }
+        
         /// <summary>
         /// Reads a file at the given <paramref name="path"/> and deserializes the top-level <see cref="CompoundTag"/> contained in the file.
         /// </summary>
@@ -27,6 +42,19 @@ namespace SharpNBT
         }
 
         /// <summary>
+        /// Asynchronously reads a file at the given <paramref name="path"/> and deserializes the top-level <see cref="Tag"/> contained in the file.
+        /// </summary>
+        /// <param name="path">The path to the file to be read.</param>
+        /// <param name="compression">Indicates the compression algorithm used to compress the file.</param>
+        /// <param name="options">Bitwise flags to configure how data should be handled for compatibility between different specifications.</param>
+        /// <returns>The deserialized <see cref="Tag"/> instance.</returns>
+        public static async Task<T> ReadAsync<T>([NotNull] string path, FormatOptions options, CompressionType compression = CompressionType.AutoDetect) where T : TagContainer
+        {
+            await using var reader = new TagReader(GetReadStream(path, compression), options);
+            return await reader.ReadTagAsync<T>();
+        }
+        
+        /// <summary>
         /// Asynchronously reads a file at the given <paramref name="path"/> and deserializes the top-level <see cref="CompoundTag"/> contained in the file.
         /// </summary>
         /// <param name="path">The path to the file to be read.</param>
@@ -38,7 +66,7 @@ namespace SharpNBT
             await using var reader = new TagReader(GetReadStream(path, compression), options);
             return await reader.ReadTagAsync<CompoundTag>();
         }
-        
+
         /// <summary>
         /// Writes the given <paramref name="tag"/> to a file at the specified <paramref name="path"/>.
         /// </summary>
@@ -54,6 +82,14 @@ namespace SharpNBT
             writer.WriteTag(tag);
         }
         
+        /// <inheritdoc cref="Write(string,SharpNBT.CompoundTag,SharpNBT.FormatOptions,SharpNBT.CompressionType,System.IO.Compression.CompressionLevel)"/>
+        public static void Write([NotNull] string path, [NotNull] ListTag tag, FormatOptions options, CompressionType type = CompressionType.GZip, CompressionLevel level = CompressionLevel.Fastest)
+        {
+            using var stream = File.OpenWrite(path);
+            using var writer = new TagWriter(GetWriteStream(stream, type, level), options);
+            writer.WriteTag(tag);
+        }
+        
         /// <summary>
         /// Asynchronously writes the given <paramref name="tag"/> to a file at the specified <paramref name="path"/>.
         /// </summary>
@@ -63,6 +99,14 @@ namespace SharpNBT
         /// <param name="type">A flag indicating the type of compression to use.</param>
         /// <param name="level">Indicates a compression strategy to be used, if any.</param>
         public static async Task WriteAsync([NotNull] string path, [NotNull] CompoundTag tag, FormatOptions options, CompressionType type = CompressionType.GZip, CompressionLevel level = CompressionLevel.Fastest)
+        {
+            await using var stream = File.OpenWrite(path);
+            await using var writer = new TagWriter(GetWriteStream(stream, type, level), options);
+            await writer.WriteTagAsync(tag);
+        }
+        
+        /// <inheritdoc cref="WriteAsync(string,SharpNBT.CompoundTag,SharpNBT.FormatOptions,SharpNBT.CompressionType,System.IO.Compression.CompressionLevel)"/>
+        public static async Task WriteAsync([NotNull] string path, [NotNull] ListTag tag, FormatOptions options, CompressionType type = CompressionType.GZip, CompressionLevel level = CompressionLevel.Fastest)
         {
             await using var stream = File.OpenWrite(path);
             await using var writer = new TagWriter(GetWriteStream(stream, type, level), options);

@@ -25,26 +25,26 @@ namespace SharpNBT.Tests
         public void CreateBigTest()
         {
 
-            var builder = new TagBuilder("Level")
-                .BeginCompound("nested compound test")
-                    .BeginCompound("egg").AddString("name", "Eggbert").AddFloat("value", 0.5f).EndCompound()
-                    .BeginCompound("ham").AddString("name", "Hampus").AddFloat("value", 0.75f).EndCompound()
-                .EndCompound()
-                .AddInt("iniTest", 2147483647)
-                .AddByte("byteTest", 127)
-                .AddString("stringTest", "HELLO WORLD THIS IS A TEST STRING \xc5\xc4\xd6!")
-                .BeginList(TagType.Long, "listTest (long)")
-                    .AddLong(11).AddLong(12).AddLong(13).AddLong(14).AddLong(15)
-                .EndList()
-                .AddDouble("doubleTest", 0.49312871321823148)
-                .AddFloat("floatTest", 0.49823147058486938f)
-                .AddLong("longTest", 9223372036854775807L)
-                .BeginList(TagType.Compound, "listTest (compound)")
-                    .BeginCompound().AddLong("created-on", 1264099775885L).AddString("name", "Compound tag #0").EndCompound()
-                    .BeginCompound().AddLong("created-on", 1264099775885L).AddString("name", "Compound tag #1").EndCompound()
-                .EndList()
-                .AddByteArray("byteArrayTest (the first 1000 values of (n*n*255+n*7)%100, starting with n=0 (0, 62, 34, 16, 8, ...))", GetByteArray())
-                .AddShort("shortTest", 32767);
+        var builder = new TagBuilder("Level")
+            .BeginCompound("nested compound test")
+                .BeginCompound("egg").AddString("name", "Eggbert").AddFloat("value", 0.5f).EndCompound()
+                .BeginCompound("ham").AddString("name", "Hampus").AddFloat("value", 0.75f).EndCompound()
+            .EndCompound()
+            .AddInt("iniTest", 2147483647)
+            .AddByte("byteTest", 127)
+            .AddString("stringTest", "HELLO WORLD THIS IS A TEST STRING \xc5\xc4\xd6!")
+            .BeginList(TagType.Long, "listTest (long)")
+                .AddLong(11).AddLong(12).AddLong(13).AddLong(14).AddLong(15)
+            .EndList()
+            .AddDouble("doubleTest", 0.49312871321823148)
+            .AddFloat("floatTest", 0.49823147058486938f)
+            .AddLong("longTest", 9223372036854775807L)
+            .BeginList(TagType.Compound, "listTest (compound)")
+                .BeginCompound().AddLong("created-on", 1264099775885L).AddString("name", "Compound tag #0").EndCompound()
+                .BeginCompound().AddLong("created-on", 1264099775885L).AddString("name", "Compound tag #1").EndCompound()
+            .EndList()
+            .AddByteArray("byteArrayTest (the first 1000 values of (n*n*255+n*7)%100, starting with n=0 (0, 62, 34, 16, 8, ...))", GetByteArray())
+            .AddShort("shortTest", 32767);
             
             output.WriteLine(builder.Create().PrettyPrinted());
         }
@@ -104,6 +104,17 @@ namespace SharpNBT.Tests
                 
             
             output.WriteLine(tb.Create().PrettyPrinted());
+        }
+
+        [Fact]
+        public void Test3()
+        {
+            var builder = new TagBuilder("My NBT Structure");
+            builder.AddInt("Health", 9000);
+            builder.AddString("PlayerName", "Herobrine");
+            var result = builder.Create();
+            
+            output.WriteLine(result.PrettyPrinted());
         }
     }
 }
