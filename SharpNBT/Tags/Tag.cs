@@ -14,7 +14,7 @@ namespace SharpNBT
     /// Abstract base class that all NBT tags inherit from.
     /// </summary>
     [PublicAPI][Serializable]
-    public abstract class Tag : IEquatable<Tag>, ISerializable
+    public abstract class Tag : IEquatable<Tag>, ISerializable, ICloneable
     {
         private static IEnumerable<Type> GetKnownTypes()
         {
@@ -153,7 +153,25 @@ namespace SharpNBT
                 // ReSharper restore NonReadonlyMemberInGetHashCode
             }
         }
-        
+
+        /// <summary>Creates a new object that is a copy of the current instance.</summary>
+        /// <returns>A new object that is a copy of this instance.</returns>
+        public object Clone()
+        {
+            // Serialize then deserialize to make a deep-copy
+            using var stream = new MemoryStream();
+            
+            // Might as well not worry about swapping bits, just use native endian
+            var opts = BitConverter.IsLittleEndian ? FormatOptions.LittleEndian : FormatOptions.BigEndian;
+            using var writer = new TagWriter(stream, opts, true);
+            using var reader = new TagReader(stream, opts, true);
+                
+            writer.WriteTag(this);
+            stream.Seek(0, SeekOrigin.Begin);
+            
+            return reader.ReadTag(!(Parent is ListTag));
+        }
+
         /// <summary>
         /// Required constructor for ISerializable implementation.
         /// </summary>
