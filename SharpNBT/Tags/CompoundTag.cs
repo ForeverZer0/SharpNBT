@@ -50,7 +50,7 @@ namespace SharpNBT
         /// <footer><a href="https://docs.microsoft.com/en-us/dotnet/api/System.Object.ToString?view=netcore-5.0">`Object.ToString` on docs.microsoft.com</a></footer>
         public override string ToString()
         {
-            var word = Count == 1 ? "entry" : "entries";
+            var word = Count == 1 ? Strings.WordEntry : Strings.WordEntries;
             return $"TAG_Compound({PrettyName}): [{Count} {word}]";
         }
 

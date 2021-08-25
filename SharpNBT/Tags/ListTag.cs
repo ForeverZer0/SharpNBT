@@ -55,7 +55,7 @@ namespace SharpNBT
         /// <inheritdoc cref="object.ToString"/>
         public override string ToString()
         {
-            var word = Count == 1 ? "entry" : "entries";
+            var word = Count == 1 ? Strings.WordEntry : Strings.WordEntries;
             return $"TAG_List({PrettyName}): [{Count} {word}]";
         }
         

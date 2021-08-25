@@ -27,7 +27,6 @@ namespace SharpNBT
         {
         }
         
-        
         /// <inheritdoc cref="object.ToString"/>
         public override string ToString() => $"TAG_Float({PrettyName}): {Value}";
         

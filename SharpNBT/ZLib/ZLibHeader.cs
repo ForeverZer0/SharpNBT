@@ -51,7 +51,7 @@ namespace SharpNBT.ZLib
 
             fCheck = Convert.ToByte(31 - Convert.ToByte((CMF * 256 + flg) % 31));
             if (fCheck > 31)
-                throw new ArgumentOutOfRangeException(nameof(fCheck), "Value cannot be greater than 31.");
+                throw new ArgumentOutOfRangeException(nameof(fCheck), Strings.ZLibValueGreater31);
         }
 
         /// <summary>
@@ -97,11 +97,11 @@ namespace SharpNBT.ZLib
             
 			result.compressionInfo = Convert.ToByte((cmf & 0xF0) >> 4);
             if (result.compressionInfo > 15)
-                throw new ArgumentOutOfRangeException(nameof(result.compressionInfo), "Value cannot be greater than 15");
+                throw new ArgumentOutOfRangeException(nameof(result.compressionInfo), Strings.ZLibValueGreater15);
             
 			result.compressionMethod = Convert.ToByte(cmf & 0x0F);
             if (result.compressionInfo > 15)
-                throw new ArgumentOutOfRangeException(nameof(result.compressionMethod), "Value cannot be greater than 15");
+                throw new ArgumentOutOfRangeException(nameof(result.compressionMethod), Strings.ZLibValueGreater15);
 
 			result.fCheck = Convert.ToByte(flg & 0x1F);
 			result.fDict  = Convert.ToByte((flg & 0x20) >> 5);

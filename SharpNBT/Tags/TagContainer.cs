@@ -148,15 +148,18 @@ namespace SharpNBT
         protected Tag AssertConventions([CanBeNull] Tag tag)
         {
             if (tag is null)
-                throw new ArgumentNullException(nameof(tag), "Child tag in collection cannot be null");
+                throw new ArgumentNullException(nameof(tag), Strings.ChildCannotBeNull);
 
-            if (NamedChildren && tag.Name is null)
-                throw new FormatException("Children of this collection type must be named.");
-            if (!NamedChildren && tag.Name != null)
-                throw new FormatException("Children of this collection type cannot be named.");
+            switch (NamedChildren)
+            {
+                case true when tag.Name is null:
+                    throw new FormatException(Strings.ChildrenMustBeNamed);
+                case false when tag.Name != null:
+                    throw new FormatException(Strings.ChildrenMustNotBeNamed);
+            }
 
             if (RequiredType.HasValue && RequiredType.Value != tag.Type)
-                throw new ArrayTypeMismatchException("Incorrect tag type added to this collection.");
+                throw new ArrayTypeMismatchException(Strings.ChildWrongType);
 
             return tag;
         }

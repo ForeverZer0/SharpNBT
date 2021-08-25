@@ -36,7 +36,7 @@ namespace SharpNBT
         public TagReader([NotNull] Stream stream, FormatOptions options, bool leaveOpen = false) : base(stream, options)
         {
             if (!stream.CanRead)
-                throw new IOException("Stream is not opened for reading.");
+                throw new IOException(Strings.CannotReadStream);
             this.leaveOpen = leaveOpen;
         }
 
@@ -260,7 +260,7 @@ namespace SharpNBT
             var count = ReadCount();
             
             if (childType == TagType.End && count > 0)
-                throw new FormatException("An EndTag is not a valid child type for a non-empty ListTag.");
+                throw new FormatException(Strings.InvalidEndTagChild);
             
             var list = new ListTag(name, childType);
             while (count-- > 0)

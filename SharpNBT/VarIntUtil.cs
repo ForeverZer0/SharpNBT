@@ -70,14 +70,14 @@ namespace SharpNBT
                 ulong tmp = byteValue & 0x7f;
                 result |= tmp << shift;
                 if (shift > bits)
-                    throw new OverflowException($"Value too large to be stored in a {bits} integer.");
+                    throw new OverflowException(string.Format(Strings.VarIntTooMuchData, bits));
                 size++;
                 if ((byteValue & 0x80) != 0x80)
                     return result;
                 
                 shift += 7;
             }
-            throw new FormatException("Cannot decode value from bytes.");
+            throw new FormatException(Strings.VarIntCannotDecode);
         }
         
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -95,7 +95,7 @@ namespace SharpNBT
                 ulong tmp = byteValue & 0x7f;
                 result |= tmp << shift;
                 if (shift > bits)
-                    throw new OverflowException($"Value too large to be stored in a {bits}-bit integer.");
+                    throw new OverflowException(string.Format(Strings.VarIntTooMuchData, bits));
                 if ((byteValue & 0x80) != 0x80)
                     return result;
                 

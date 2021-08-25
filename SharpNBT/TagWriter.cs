@@ -28,7 +28,7 @@ namespace SharpNBT
         public TagWriter([NotNull] Stream stream, FormatOptions options, bool leaveOpen = false) : base(stream, options)
         {
             if (!stream.CanWrite)
-                throw new IOException("Stream is not opened for writing.");
+                throw new IOException(Strings.CannotWriteStream);
             this.leaveOpen = leaveOpen;
         }
 
@@ -269,7 +269,7 @@ namespace SharpNBT
                     WriteLongArray((LongArrayTag)tag);
                     break;
                 default:
-                    throw new ArgumentOutOfRangeException(nameof(tag.Type), "Unknown tag type.");
+                    throw new ArgumentOutOfRangeException(nameof(tag.Type), Strings.UnknownTagType);
             }
         }
 

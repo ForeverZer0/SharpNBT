@@ -148,7 +148,7 @@ namespace SharpNBT
                 case CompressionType.GZip: return new GZipStream(stream, level, false);
                 case CompressionType.ZLib: return new ZLibStream(stream, level);
                 case CompressionType.AutoDetect:
-                    throw new ArgumentOutOfRangeException(nameof(type), "Auto-detect is not a valid compression type for writing files.");
+                    throw new ArgumentOutOfRangeException(nameof(type), Strings.AutoDetectNotValid);
                 default:
                     throw new ArgumentOutOfRangeException(nameof(type), type, null);
             }
@@ -168,7 +168,7 @@ namespace SharpNBT
                     0x1F => CompressionType.GZip,
                     0x08 => CompressionType.None, // ListTag (valid in Bedrock)
                     0x0A => CompressionType.None, // CompoundTag
-                    _ => throw new FormatException("Unable to detect compression type.")
+                    _ => throw new FormatException(Strings.CannotDetectCompression)
                 };
             }
 

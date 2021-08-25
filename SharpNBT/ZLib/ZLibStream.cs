@@ -361,7 +361,7 @@ namespace SharpNBT.ZLib
             var crcStream = BitConverter.ToInt32(checksum, 0);
 
             if (crcStream != crcAdler)
-                throw new InvalidDataException("CRC validation failed.");
+                throw new InvalidDataException(Strings.CRCFail);
         }
 
         /// <summary>
@@ -379,7 +379,7 @@ namespace SharpNBT.ZLib
                 case CompressionMode.Decompress:
                 {
                     if (!IsSupported(BaseStream))
-                        throw new InvalidDataException();
+                        throw new InvalidDataException(Strings.ZlibUnsupported);
 
                     return new DeflateStream(BaseStream, CompressionMode.Decompress, true);
                 }
