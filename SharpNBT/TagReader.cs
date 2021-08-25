@@ -7,7 +7,6 @@ using JetBrains.Annotations;
 
 namespace SharpNBT
 {
-
     /// <summary>
     /// Provides methods for reading NBT data from a stream.
     /// </summary>

@@ -6,8 +6,8 @@ A CLS-compliant implementation of the Named Binary Tag (NBT) specifications (Jav
 
 ## Features
 
-* **Java/Bedrock Support:** Supports all NBT protocols used by different versions of Minecraft, including: Java, Bedrock (file protocol), and Bedrock (network protocol), including full support for either GZip or ZLib compression.
-* **Ease-of-use:** An intuitive API design, following the style and conventions of the .NET runtime, with full Intellisense for every public member: Spend more time being productive and less time digging through documentation.
+* **Java/Bedrock Support:** Supports all NBT protocols used by different versions of Minecraft, including: Java, Bedrock (file protocol), and Bedrock (network protocol), including full support for either GZip/ZLib compression, big/little endian, and variable length integers with optional ZigZag encoding.
+* **Ease-of-use:** An intuitive API design, following the style and conventions of the .NET runtime, with full Intellisense for every member: Spend more time being productive and less time digging through documentation.
 * **Performance:**  Leverages the power of modern C# language features, including `Span` with `stackalloc`, `MemoryMarshal`, etc. This allows for a type-safe way to reinterpret raw buffers without pointers or making unnecessary copies of buffers, a common pitfall with serialization in type-safe languages.
 * **Concurrency:** Includes standard async/await concurrency patterns for reading and writing.
 * **Cross-platform and cross-language support:** Fully CLR compliant and build against .NET Standard 2.1, allowing support for any CLR language (i.e. C#, Visual Basic, F#, etc.) for the following runtime versions or greater:
@@ -114,7 +114,10 @@ Pull requests are always welcome.
 
 The project is available as open source under the terms of the [MIT License](https://opensource.org/licenses/MIT).
 
-
 ## Code of Conduct
 
 Everyone interacting in the SharpNBT project’s codebases, issue trackers, chat rooms and mailing lists is expected to follow the [code of conduct](https://github.com/ForeverZer0/SharpNBT/blob/master/CODE_OF_CONDUCT.md).
+
+## Special Thanks
+
+This project would not be possible without all the contributors to the https://wiki.vg/ and its maintainers, who have created an invaluable source of information for developers for everything related to the game of Minecraft.

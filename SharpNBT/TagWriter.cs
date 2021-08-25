@@ -216,6 +216,12 @@ namespace SharpNBT
         }
 
         /// <summary>
+        /// Convenience method to build and write a <see cref="TagBuilder"/> instance to the underlying stream.
+        /// </summary>
+        /// <param name="builder">A <see cref="TagBuilder"/> instance to write.</param>
+        public virtual void WriteBuilder([NotNull] TagBuilder builder) => WriteCompound(builder.Create());
+
+        /// <summary>
         /// 
         /// </summary>
         /// <param name="tag"></param>
