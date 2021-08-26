@@ -1,6 +1,12 @@
 # SharpNBT
 
 [![.NET](https://github.com/ForeverZer0/SharpNBT/actions/workflows/dotnet.yml/badge.svg)](https://github.com/ForeverZer0/SharpNBT/actions/workflows/dotnet.yml)
+[![License](https://img.shields.io/github/license/ForeverZer0/SharpNBT)](https://opensource.org/licenses/MIT)
+[![Version](https://img.shields.io/nuget/v/SharpNBT.svg)](https://nuget.org/packages/SharpNBT)
+[![Downloads](https://img.shields.io/nuget/dt/SharpNBT)](https://www.nuget.org/packages/SharpNBT)
+
+![Java](https://img.shields.io/badge/Minecraft-Java-brightgreen)
+![Bedrock](https://img.shields.io/badge/Minecraft-Bedrock-blue)
 
 A CLS-compliant implementation of the Named Binary Tag (NBT) specifications (Java/Bedrock), written in pure C# with no external dependencies and targeting a wide variety of .NET implementations and languages on all platforms.
 
