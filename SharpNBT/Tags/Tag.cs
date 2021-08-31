@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Runtime.CompilerServices;
 using System.Runtime.Serialization;
 using System.Runtime.Serialization.Json;
 using System.Text;
@@ -8,6 +9,7 @@ using System.Text.RegularExpressions;
 using JetBrains.Annotations;
 
 [assembly: CLSCompliant(true)]
+[assembly: InternalsVisibleTo("SharpNBT.Tests")]
 
 namespace SharpNBT
 {

@@ -63,6 +63,12 @@ namespace SharpNBT
         /// </summary>
         /// <returns>This NBT tag in SNBT format.</returns>
         /// <seealso href="https://minecraft.fandom.com/wiki/NBT_format#SNBT_format"/>
-        public override string Stringify() => $"{StringifyName}[B;{string.Join(',', this)}]";
+        public override string Stringify()
+        {
+            var values = new string[Count];
+            for (var i = 0; i < Count; i++)
+                values[i] = $"{this[i]}b";
+            return $"{StringifyName}[B;{string.Join(',', values)}]";
+        }
     }
 }

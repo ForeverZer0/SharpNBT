@@ -60,12 +60,18 @@ namespace SharpNBT
             var word = Count == 1 ? Strings.WordElement : Strings.WordElements;
             return $"TAG_Long_Array({PrettyName}): [{Count} {word}]";
         }
-        
+
         /// <summary>
         /// Gets the <i>string</i> representation of this NBT tag (SNBT).
         /// </summary>
         /// <returns>This NBT tag in SNBT format.</returns>
         /// <seealso href="https://minecraft.fandom.com/wiki/NBT_format#SNBT_format"/>
-        public override string Stringify() => $"{StringifyName}[L;{string.Join(',', this)}]";
+        public override string Stringify()
+        {
+            var values = new string[Count];
+            for (var i = 0; i < Count; i++)
+                values[i] = $"{this[i]}l";
+            return $"{StringifyName}[L;{string.Join(',', values)}]";
+        }
     }
 }
