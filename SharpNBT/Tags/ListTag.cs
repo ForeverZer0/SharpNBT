@@ -72,7 +72,7 @@ namespace SharpNBT
                 tag.PrettyPrinted(buffer, level + 1, indent);
             buffer.AppendLine(space + "}");
         }
-        
+
         /// <summary>
         /// Retrieves a "pretty-printed" multiline string representing the complete tree structure of the tag.
         /// </summary>
@@ -84,6 +84,20 @@ namespace SharpNBT
             var buffer = new StringBuilder();
             PrettyPrinted(buffer, 0, indent);
             return buffer.ToString();
+        }
+
+        /// <summary>
+        /// Gets the <i>string</i> representation of this NBT tag (SNBT).
+        /// </summary>
+        /// <returns>This NBT tag in SNBT format.</returns>
+        /// <seealso href="https://minecraft.fandom.com/wiki/NBT_format#SNBT_format"/>
+        public override string Stringify()
+        {
+            var strings = new string[Count];
+            for (var i = 0; i < strings.Length; i++)
+                strings[i] = this[i].Stringify();
+            
+            return $"{StringifyName}[{string.Join(',', strings)}]";
         }
     }
 }

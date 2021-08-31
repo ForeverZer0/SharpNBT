@@ -24,5 +24,12 @@ namespace SharpNBT
         {
             // Do nothing
         }
+
+        /// <summary>
+        /// Gets the <i>string</i> representation of this NBT tag (SNBT).
+        /// </summary>
+        /// <returns>This NBT tag in SNBT format.</returns>
+        /// <seealso href="https://minecraft.fandom.com/wiki/NBT_format#SNBT_format"/>
+        public override string Stringify() => string.Empty;
     }
 }

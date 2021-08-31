@@ -1,5 +1,6 @@
 using System;
 using System.Runtime.Serialization;
+using System.Text;
 using JetBrains.Annotations;
 
 namespace SharpNBT
@@ -69,5 +70,12 @@ namespace SharpNBT
         /// <returns>The tag represented as a <see cref="sbyte"/>.</returns>
         [CLSCompliant(false)]
         public static implicit operator sbyte(ByteTag tag) => unchecked((sbyte)tag.Value);
+
+        /// <summary>
+        /// Gets the <i>string</i> representation of this NBT tag (SNBT).
+        /// </summary>
+        /// <returns>This NBT tag in SNBT format.</returns>
+        /// <seealso href="https://minecraft.fandom.com/wiki/NBT_format#SNBT_format"/>
+        public override string Stringify() => $"{StringifyName}{Value}B";
     }
 }

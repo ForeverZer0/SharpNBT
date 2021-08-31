@@ -37,5 +37,12 @@ namespace SharpNBT
         /// <param name="tag">The tag to convert.</param>
         /// <returns>The tag represented as a <see cref="double"/>.</returns>
         public static implicit operator double(DoubleTag tag) => tag.Value;
+        
+        /// <summary>
+        /// Gets the <i>string</i> representation of this NBT tag (SNBT).
+        /// </summary>
+        /// <returns>This NBT tag in SNBT format.</returns>
+        /// <seealso href="https://minecraft.fandom.com/wiki/NBT_format#SNBT_format"/>
+        public override string Stringify() => $"{StringifyName}{Value:0.0}D";
     }
 }

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.Serialization;
 using System.Text;
 using JetBrains.Annotations;
@@ -111,6 +112,32 @@ namespace SharpNBT
             foreach (var tag in this)
                 tag.PrettyPrinted(buffer, level + 1, indent);
             buffer.AppendLine(space + "}");
+        }
+
+        /// <summary>
+        /// Gets the <i>string</i> representation of this NBT tag (SNBT).
+        /// </summary>
+        /// <returns>This NBT tag in SNBT format.</returns>
+        /// <seealso href="https://minecraft.fandom.com/wiki/NBT_format#SNBT_format"/>
+        public override string Stringify()
+        {
+            var strings = new string[Count];
+            for (var i = 0; i < strings.Length; i++)
+                strings[i] = this[i].Stringify();
+            
+            return $"{StringifyName}{{{string.Join(',', strings)}}}";
+        }
+        
+        /// <summary>
+        /// Gets the <i>string</i> representation of this NBT tag (SNBT).
+        /// </summary>
+        /// <param name="topLevel">Flag indicating if this is the top-level tag that should be wrapped in braces.</param>
+        /// <returns>This NBT tag in SNBT format.</returns>
+        /// <seealso href="https://minecraft.fandom.com/wiki/NBT_format#SNBT_format"/>
+        public string Stringify(bool topLevel)
+        {
+            var str = Stringify();
+            return topLevel ? $"{{{str}}}" : str;
         }
     }
 }

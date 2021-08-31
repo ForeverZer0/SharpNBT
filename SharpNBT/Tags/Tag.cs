@@ -4,6 +4,7 @@ using System.IO;
 using System.Runtime.Serialization;
 using System.Runtime.Serialization.Json;
 using System.Text;
+using System.Text.RegularExpressions;
 using JetBrains.Annotations;
 
 [assembly: CLSCompliant(true)]
@@ -208,6 +209,27 @@ namespace SharpNBT
         /// <param name="right">Second value to compare.</param>
         /// <returns>Result of comparison.</returns>
         public static bool operator !=(Tag left, Tag right) => !Equals(left, right);
+        
+        /// <summary>
+        /// Gets the <i>string</i> representation of this NBT tag (SNBT).
+        /// </summary>
+        /// <returns>This NBT tag in SNBT format.</returns>
+        /// <seealso href="https://minecraft.fandom.com/wiki/NBT_format#SNBT_format"/>
+        public abstract string Stringify();
+
+        /// <summary>
+        /// Gets the name in a formatted properly for SNBT.
+        /// </summary>
+        [NotNull]
+        protected internal string StringifyName
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(Name))
+                    return string.Empty;
+                return Regex.IsMatch(Name, @"^[A-Ba-z0-9_-]+$") ? $"{Name}: " : $"\"{Name}\": ";
+            }
+        }
     }
     
     /// <summary>
