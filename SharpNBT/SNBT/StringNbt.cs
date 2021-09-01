@@ -1,11 +1,18 @@
 using System;
 using System.Collections.Generic;
 using System.Data;
+using System.IO;
+using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 using JetBrains.Annotations;
 
 namespace SharpNBT.SNBT
 {
+    /// <summary>
+    /// Provides static methods for parsing string-NBT (SNBT) source text into a complete <see cref="CompoundTag"/>.
+    /// </summary>
+    [PublicAPI]
     public static class StringNbt
     {
         private static readonly Lexer lexer;
@@ -34,9 +41,74 @@ namespace SharpNBT.SNBT
             lexer.AddRule(TokenType.Long, "(-?[0-9]+)[Ll]", FirstGroupValue);
             lexer.AddRule(TokenType.Int, "(-?[0-9]+)", FirstGroupValue);
         }
+
+        /// <summary>
+        /// Parse the text in the given <paramref name="stream"/> into a <see cref="CompoundTag"/>.
+        /// </summary>
+        /// <param name="stream">A <see cref="Stream"/> containing the SNBT data.</param>
+        /// <param name="length">The number of bytes to read from the <paramref name="stream"/>, advancing its position.</param>
+        /// <returns>The <see cref="CompoundTag"/> instance described in the source text.</returns>
+        /// <exception cref="ArgumentNullException">When <paramref name="stream"/> is <see langword="null"/>.</exception>
+        /// <exception cref="IOException">When <paramref name="stream"/> is not opened for reading.</exception>
+        /// <exception cref="ArgumentException">When <paramref name="length"/> is negative.</exception>
+        /// <exception cref="SyntaxErrorException">When <paramref name="stream"/> contains invalid SNBT code.</exception>
+        [NotNull]
+        public static CompoundTag Parse(Stream stream, int length)
+        {
+            Validate(stream, length);
+            if (length == 0)
+                return new CompoundTag(null);
+            
+            var buffer = new byte[length];
+            stream.Read(buffer, 0, length);
+            var str = Encoding.UTF8.GetString(buffer, 0, buffer.Length);
+            
+            return Parse(str);
+        }
+
+        /// <summary>
+        /// Asynchronously parses the text in the given <paramref name="stream"/> into a <see cref="CompoundTag"/>.
+        /// </summary>
+        /// <param name="stream">A <see cref="Stream"/> containing the SNBT data.</param>
+        /// <param name="length">The number of bytes to read from the <paramref name="stream"/>, advancing its position.</param>
+        /// <returns>The <see cref="CompoundTag"/> instance described in the source text.</returns>
+        /// <exception cref="ArgumentNullException">When <paramref name="stream"/> is <see langword="null"/>.</exception>
+        /// <exception cref="IOException">When <paramref name="stream"/> is not opened for reading.</exception>
+        /// <exception cref="ArgumentException">When <paramref name="length"/> is negative.</exception>
+        /// <exception cref="SyntaxErrorException">When <paramref name="stream"/> contains invalid SNBT code.</exception>
+        [NotNull]
+        public static async Task<CompoundTag> ParseAsync(Stream stream, int length)
+        {
+            Validate(stream, length);
+            if (length == 0)
+                return new CompoundTag(null);
+            
+            var buffer = new byte[length];
+            await stream.ReadAsync(buffer, 0, length);
+            var str = Encoding.UTF8.GetString(buffer, 0, buffer.Length);
+            
+            return Parse(str);
+        }
+
+        private static void Validate(Stream stream, int length)
+        {
+            if (stream is null)
+                throw new ArgumentNullException(nameof(stream));
+            if (!stream.CanRead)
+                throw new IOException("Stream is not opened for reading.");
+            
+            if (length < 0)
+                throw new ArgumentException(Strings.NegativeLengthSpecified, nameof(length));
+        }
         
-        private static string FirstGroupValue(Match match) => match.Groups[1].Value;
-        
+        /// <summary>
+        /// Parse the given <paramref name="source"/> text into a <see cref="CompoundTag"/>.
+        /// </summary>
+        /// <param name="source">A string containing the SNBT code to parse.</param>
+        /// <returns>The <see cref="CompoundTag"/> instance described in the source text.</returns>
+        /// <exception cref="ArgumentNullException">When <paramref name="source"/> is <see langword="null"/>.</exception>
+        /// <exception cref="SyntaxErrorException">When <paramref name="source"/> is invalid SNBT code.</exception>
+        [NotNull]
         public static CompoundTag Parse([NotNull] string source)
         {
             if (source is null)
@@ -170,5 +242,7 @@ namespace SharpNBT.SNBT
                 yield return token;
             }
         }
+        
+        private static string FirstGroupValue(Match match) => match.Groups[1].Value;
     }
 }

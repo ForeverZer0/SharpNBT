@@ -164,5 +164,11 @@ namespace SharpNBT {
                 return ResourceManager.GetString("ChildWrongType", resourceCulture);
             }
         }
+        
+        internal static string NegativeLengthSpecified {
+            get {
+                return ResourceManager.GetString("NegativeLengthSpecified", resourceCulture);
+            }
+        }
     }
 }

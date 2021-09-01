@@ -78,4 +78,7 @@
     <data name="ChildWrongType" xml:space="preserve">
         <value>Incorrect tag type added to this collection.</value>
     </data>
+    <data name="NegativeLengthSpecified" xml:space="preserve">
+        <value>Negative length specified.</value>
+    </data>
 </root>
