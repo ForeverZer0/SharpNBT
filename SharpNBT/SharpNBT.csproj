@@ -13,6 +13,7 @@
         <PackageTags>nbt;named binary tag;minecraft;serialization;java;bedrock;pocket edition;varint;varlong;zlib</PackageTags>
         <Copyright>Copyright © Eric Freed 2021</Copyright>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+        <PackageVersion>1.1.0</PackageVersion>
     </PropertyGroup>
 
     <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
