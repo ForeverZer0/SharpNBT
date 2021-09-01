@@ -1,4 +1,6 @@
 using System.IO;
+using System.Runtime.InteropServices;
+using System.Text;
 using Microsoft.VisualStudio.TestPlatform.ObjectModel;
 using SharpNBT.SNBT;
 using Xunit;
@@ -34,22 +36,19 @@ namespace SharpNBT.Tests
         public void ParseSmall()
         {
             const string testString = "{name1:123,name2:\"sometext1\",name3:{subname1:456,subname2:\"sometext2\"}}";
-            var lexer = new Lexer();
-            foreach (var token in lexer.Tokenize(testString))
-            {
-                output.WriteLine($"{token.Type}: \"{token.Match.Trim()}\"");
-            }
+            var tag = StringNbt.Parse(testString);
+            output.WriteLine(tag.PrettyPrinted());
         }
 
         [Fact]
         public void ParseBig()
         {
-            var testString = File.ReadAllText("/code/ruby/craftbook-nbt/test/bigtest.snbt");
-            var lexer = new Lexer();
-            foreach (var token in lexer.Tokenize(testString))
-            {
-                output.WriteLine($"{token.Type}: \"{token.Match.Trim()}\"");
-            }
+            using var stream = TestHelper.GetFile("bigtest.snbt", CompressionType.None);
+            using var reader = new StreamReader(stream, Encoding.UTF8);
+            var testString = reader.ReadToEnd();
+
+            var tag = StringNbt.Parse(testString);
+            output.WriteLine(tag.PrettyPrinted());
         }
     }
 }

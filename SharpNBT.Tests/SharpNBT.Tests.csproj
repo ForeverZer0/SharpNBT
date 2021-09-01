@@ -32,6 +32,8 @@
       <EmbeddedResource Include="Data\hello_world.nbt">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </EmbeddedResource>
+      <None Remove="Data\bigtest.snbt" />
+      <EmbeddedResource Include="Data\bigtest.snbt" />
     </ItemGroup>
 
 </Project>
