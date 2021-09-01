@@ -29,7 +29,7 @@ namespace SharpNBT
         }
         
         /// <inheritdoc cref="object.ToString"/>
-        public override string ToString() => $"TAG_Double({PrettyName}): {Value}";
+        public override string ToString() => $"TAG_Double({PrettyName}): {Value:0.0}";
         
         /// <summary>
         /// Implicit conversion of this tag to a <see cref="double"/>.

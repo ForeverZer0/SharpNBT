@@ -28,7 +28,7 @@ namespace SharpNBT
         }
         
         /// <inheritdoc cref="object.ToString"/>
-        public override string ToString() => $"TAG_Float({PrettyName}): {Value}";
+        public override string ToString() => $"TAG_Float({PrettyName}): {Value:0.0}";
         
         /// <summary>
         /// Implicit conversion of this tag to a <see cref="float"/>.
