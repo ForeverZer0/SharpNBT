@@ -26,6 +26,7 @@ A CLS-compliant implementation of the Named Binary Tag (NBT) specifications (Jav
     * Xamarin.Android 10.0
     * Unity 2021.2.0b6
 * **Callbacks:** Can subscribe to events that get a callback as the parser steps through a stream to get immediate feedback without waiting for document completion. This allows subscribers to even parse the payload themselves and handle the event entirely.
+* **String NBT**: Supports both generating and parsing arbitrary SNBT strings.
 
 ## Usage
 
