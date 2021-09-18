@@ -19,6 +19,14 @@ namespace SharpNBT
     [PublicAPI][Serializable]
     public abstract class Tag : IEquatable<Tag>, ISerializable, ICloneable
     {
+        private static Regex simpleNameMatcher;
+
+        static Tag()
+        {
+            simpleNameMatcher = new Regex(@"^[A-Ba-z0-9_-]+$", RegexOptions.Compiled);
+        }
+        
+        
         private static IEnumerable<Type> GetKnownTypes()
         {
             return new[]
@@ -229,7 +237,7 @@ namespace SharpNBT
             {
                 if (string.IsNullOrEmpty(Name))
                     return string.Empty;
-                return Regex.IsMatch(Name, @"^[A-Ba-z0-9_-]+$") ? $"{Name}: " : $"\"{Name}\": ";
+                return simpleNameMatcher.IsMatch(Name) ? $"{Name}: " : $"\"{Name}\": ";
             }
         }
     }

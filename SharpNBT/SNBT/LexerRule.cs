@@ -24,7 +24,7 @@ namespace SharpNBT.SNBT
         public LexerRule(TokenType type, string pattern, ResultHandler handler, bool skipped = false)
         {
             Type = type;
-            Pattern = new Regex(pattern);
+            Pattern = new Regex(pattern, RegexOptions.Compiled);
             IsSkipped = skipped;
             processResult = handler;
         }

@@ -1,4 +1,5 @@
 {
+    "bool test": true,
   "test case": 90,
   noQuotes: "HELLO WORLD THIS IS A TEST STRING ÅÄÖ!",
   "test with \" escaped quote": 90,

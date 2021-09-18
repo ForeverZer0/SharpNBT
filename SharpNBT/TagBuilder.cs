@@ -42,6 +42,21 @@ namespace SharpNBT
         /// <param name="name">The name of the node to add.</param>
         /// <param name="value">The value of the tag.</param>
         /// <returns>Returns this <see cref="TagBuilder"/> instance for chaining.</returns>
+        public TagBuilder AddBool([CanBeNull] string name, bool value) => AddTag(new BoolTag(name, value));
+        
+        /// <summary>
+        /// Adds a new unnamed <see cref="ByteTag"/> with the specified <paramref name="value"/> to the tree at the current depth.
+        /// </summary>
+        /// <param name="value">The value of the tag.</param>
+        /// <returns>Returns this <see cref="TagBuilder"/> instance for chaining.</returns>
+        public TagBuilder AddBool(bool value) => AddBool(null, value);
+        
+        /// <summary>
+        /// Adds a new <see cref="ByteTag"/> with the specified <paramref name="name"/> and <paramref name="value"/> to the tree at the current depth.
+        /// </summary>
+        /// <param name="name">The name of the node to add.</param>
+        /// <param name="value">The value of the tag.</param>
+        /// <returns>Returns this <see cref="TagBuilder"/> instance for chaining.</returns>
         public TagBuilder AddByte([CanBeNull] string name, byte value) => AddTag(new ByteTag(name, value));
 
         /// <inheritdoc cref="AddByte(string,byte)"/>
@@ -58,7 +73,7 @@ namespace SharpNBT
         /// <inheritdoc cref="AddByte(sbyte)"/>
         [CLSCompliant(false)]
         public TagBuilder AddByte(sbyte value) => AddByte(null, unchecked((byte)value));
-        
+
         /// <summary>
         /// Adds a new <see cref="ShortTag"/> with the specified <paramref name="name"/> and <paramref name="value"/> to the tree at the current depth.
         /// </summary>

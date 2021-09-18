@@ -30,6 +30,8 @@ namespace SharpNBT.Tests
                 .BeginCompound("egg").AddString("name", "Eggbert").AddFloat("value", 0.5f).EndCompound()
                 .BeginCompound("ham").AddString("name", "Hampus").AddFloat("value", 0.75f).EndCompound()
             .EndCompound()
+            .AddBool("boolTest", true)
+            .AddBool("bool Test 2", false)
             .AddInt("iniTest", 2147483647)
             .AddByte("byteTest", 127)
             .AddString("stringTest", "HELLO WORLD THIS IS A TEST STRING \xc5\xc4\xd6!")

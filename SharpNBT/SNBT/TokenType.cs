@@ -71,6 +71,11 @@ namespace SharpNBT.SNBT
         Byte,
         
         /// <summary>
+        /// A <see cref="BoolTag"/> value.
+        /// </summary>
+        Bool,
+        
+        /// <summary>
         /// A <see cref="ShortTag"/> value.
         /// </summary>
         Short,

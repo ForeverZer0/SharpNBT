@@ -36,6 +36,7 @@ namespace SharpNBT.SNBT
             lexer.AddRule(TokenType.EndArray, @"\]");
             lexer.AddRule(TokenType.Float, @"(-?[0-9]*\.[0-9]+)[Ff]", FirstGroupValue);
             lexer.AddRule(TokenType.Double, @"(-?[0-9]*\.[0-9]+)[Dd]?", FirstGroupValue);
+            lexer.AddRule(TokenType.Bool, "(true|false)", FirstGroupValue);
             lexer.AddRule(TokenType.Byte, "(-?[0-9]+)[Bb]", FirstGroupValue);
             lexer.AddRule(TokenType.Short, "(-?[0-9]+)[Ss]", FirstGroupValue);
             lexer.AddRule(TokenType.Long, "(-?[0-9]+)[Ll]", FirstGroupValue);
@@ -142,6 +143,7 @@ namespace SharpNBT.SNBT
                 TokenType.IntArray => ParseIntArray(name, queue),
                 TokenType.LongArray => ParseLongArray(name, queue),
                 TokenType.List => ParseList(name, queue),
+                TokenType.Bool => new BoolTag(name, bool.Parse(token.Value)),
                 TokenType.Byte => new ByteTag(name, sbyte.Parse(token.Value)),
                 TokenType.Short => new ShortTag(name, short.Parse(token.Value)),
                 TokenType.Int => new IntTag(name, int.Parse(token.Value)),
