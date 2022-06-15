@@ -70,7 +70,7 @@ namespace SharpNBT
             else
             {
                 Span<byte> buffer = stackalloc byte[sizeof(short)];
-                BaseStream.Read(buffer);
+                ReadToFixSizedBuffer(buffer);
                 value = BitConverter.ToInt16(buffer);
                 if (SwapEndian)
                     value = value.SwapEndian();
@@ -109,7 +109,7 @@ namespace SharpNBT
             else
             {
                 Span<byte> buffer = stackalloc byte[sizeof(long)];
-                BaseStream.Read(buffer);
+                ReadToFixSizedBuffer(buffer);
                 value = BitConverter.ToInt64(buffer);
                 if (SwapEndian)
                     value = value.SwapEndian();
@@ -129,7 +129,7 @@ namespace SharpNBT
             var name = named ? ReadUTF8String() : null;
             
             var buffer = new byte[sizeof(float)];
-            BaseStream.Read(buffer, 0, sizeof(float));
+            ReadToFixSizedBuffer(buffer, 0, sizeof(float));
             if (SwapEndian)
                 Array.Reverse(buffer);
             
@@ -146,7 +146,7 @@ namespace SharpNBT
         {
             var name = named ? ReadUTF8String() : null;
             var buffer = new byte[sizeof(double)];
-            BaseStream.Read(buffer, 0, buffer.Length);
+            ReadToFixSizedBuffer(buffer, 0, buffer.Length);
             if (SwapEndian)
                 Array.Reverse(buffer);
 
@@ -177,7 +177,7 @@ namespace SharpNBT
             var name = named ? ReadUTF8String() : null;
             var count = ReadCount();
             var buffer = new byte[count];
-            BaseStream.Read(buffer, 0, count);
+            ReadToFixSizedBuffer(buffer, 0, count);
             return new ByteArrayTag(name, buffer);
         }
         
@@ -203,7 +203,7 @@ namespace SharpNBT
             }
  
             var buffer = new byte[count * INT_SIZE];
-            BaseStream.Read(buffer, 0, count * INT_SIZE);
+            ReadToFixSizedBuffer(buffer, 0, count * INT_SIZE);
 
             Span<int> values = MemoryMarshal.Cast<byte, int>(buffer);
             if (SwapEndian)
@@ -236,7 +236,7 @@ namespace SharpNBT
             }
 
             var buffer = new byte[count * LONG_SIZE];
-            BaseStream.Read(buffer, 0, count * LONG_SIZE);
+            ReadToFixSizedBuffer(buffer, 0, count * LONG_SIZE);
 
             Span<long> values = MemoryMarshal.Cast<byte, long>(buffer);
             if (SwapEndian)
@@ -397,7 +397,7 @@ namespace SharpNBT
             else
             {
                 Span<byte> buffer = stackalloc byte[sizeof(ushort)];
-                BaseStream.Read(buffer);
+                ReadToFixSizedBuffer(buffer);
                 var uint16 = BitConverter.ToUInt16(buffer);
                 length = SwapEndian ? uint16.SwapEndian() : uint16;
             }
@@ -406,7 +406,7 @@ namespace SharpNBT
                 return null;
             
             var utf8 = new byte[length];
-            BaseStream.Read(utf8, 0, length);
+            ReadToFixSizedBuffer(utf8, 0, length);
             return Encoding.UTF8.GetString(utf8);
         }
 
@@ -419,9 +419,51 @@ namespace SharpNBT
         private int ReadInt32()
         {
             Span<byte> buffer = stackalloc byte[sizeof(int)];
-            BaseStream.Read(buffer);
+            ReadToFixSizedBuffer(buffer);
             var value = BitConverter.ToInt32(buffer);
             return SwapEndian ? value.SwapEndian() : value;
+        }
+        
+        /// <summary>
+        /// Reads bytes from the streams and stores them into the <paramref name="buffer"/>.
+        /// The number of read bytes is dictated by the size of the buffer.
+        /// This method ensures that all requested bytes are read.
+        /// </summary>
+        /// <remarks>
+        /// Use this instead of <c>BaseStream.Read(buffer)</c>.
+        /// There was a breaking change in .NET 6 where the <see cref="Stream.Read(byte[],int,int)"/> can read less bytes than requested for certain streams.
+        /// Read more here: https://docs.microsoft.com/en-us/dotnet/core/compatibility/core-libraries/6.0/partial-byte-reads-in-streams
+        /// </remarks>
+        /// <param name="buffer">The buffer where the read bytes are written to. the buffer size defines the number of bytes to read.</param>
+        /// <exception cref="EndOfStreamException">Throws if no more bytes could be read from the stream, but the buffer wasn't completely filled yet.</exception>
+        protected void ReadToFixSizedBuffer(Span<byte> buffer)
+        {
+            var totalBytes = 0;
+            while (totalBytes < buffer.Length)
+            {
+                var readBytes = BaseStream.Read(buffer.Slice(totalBytes));
+                if (readBytes == 0)
+                    throw new EndOfStreamException();
+                totalBytes += readBytes;
+            }
+        }
+        
+        /// <summary>
+        /// Reads bytes from the streams and stores them into the <paramref name="buffer"/>.
+        /// This method ensures that all requested bytes are read.
+        /// </summary>
+        /// <remarks>
+        /// Use this instead of <c>BaseStream.Read(buffer, offset, count)</c>.
+        /// There was a breaking change in .NET 6 where the <see cref="Stream.Read(byte[],int,int)"/> can read less bytes than requested for certain streams.
+        /// Read more here: https://docs.microsoft.com/en-us/dotnet/core/compatibility/core-libraries/6.0/partial-byte-reads-in-streams
+        /// </remarks>
+        /// <param name="buffer">The buffer where the read bytes are written to. The data will be stored starting at <paramref name="offset"/> to <paramref name="offset"/> + <paramref name="count"/> - 1.</param>
+        /// <param name="offset">The offset in <paramref name="buffer"/> where the read data is stored.</param>
+        /// <param name="count">The number of bytes to read. Must be positive.</param>
+        /// <exception cref="EndOfStreamException">Throws if no more bytes could be read from the stream, but the buffer wasn't completely filled yet.</exception>
+        protected void ReadToFixSizedBuffer(byte[] buffer, int offset, int count)
+        {
+            ReadToFixSizedBuffer(new Span<byte>(buffer, offset, count));
         }
 
         /// <summary>
@@ -465,6 +507,5 @@ namespace SharpNBT
             TagEncountered.Invoke(this, args);
             return args.Handled ? args.Result : null;
         }
-        
     }
 }
