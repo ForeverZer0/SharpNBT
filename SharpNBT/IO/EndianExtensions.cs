@@ -1,7 +1,8 @@
+using System;
 using System.Runtime.CompilerServices;
 using JetBrains.Annotations;
 
-namespace SharpNBT;
+namespace SharpNBT.IO;
 
 /// <summary>
 /// Contains extension methods dealing with endianness of numeric types.
@@ -26,7 +27,6 @@ internal static class EndianExtensions
     }
 
     /// <inheritdoc cref="SwapEndian(short)"/>
-    [CLSCompliant(false)]
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static ushort SwapEndian(this ushort value)
     {
@@ -38,7 +38,6 @@ internal static class EndianExtensions
     public static int SwapEndian(this int value) => unchecked((int)SwapEndian(unchecked((uint)value)));
 
     /// <inheritdoc cref="SwapEndian(short)"/>
-    [CLSCompliant(false)]
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static uint SwapEndian(this uint value)
     {
@@ -47,7 +46,6 @@ internal static class EndianExtensions
     }
 
     /// <inheritdoc cref="SwapEndian(short)"/>
-    [CLSCompliant(false)]
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static ulong SwapEndian(this ulong value)
     {

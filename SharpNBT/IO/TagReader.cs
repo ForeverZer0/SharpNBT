@@ -1,12 +1,15 @@
+using System;
 using System.Buffers;
+using System.IO;
 using System.Text;
-using SharpNBT.Tags;
+using JetBrains.Annotations;
 
-namespace SharpNBT;
+namespace SharpNBT.IO;
 
 /// <summary>
 /// Abstract base class for types that can read NBT tags from a stream.
 /// </summary>
+[PublicAPI]
 public abstract class TagReader
 {
     /// <summary>
@@ -17,7 +20,7 @@ public abstract class TagReader
     /// <summary>
     /// A memory pool that can be used for fast allocations of temporary memory.
     /// </summary>
-    protected ArrayPool<byte> MemoryPool => ArrayPool<byte>.Shared;
+    protected static ArrayPool<byte> MemoryPool => ArrayPool<byte>.Shared;
     
     /// <summary>
     /// Occurs when a tag has been deserialized from the stream.
@@ -75,7 +78,7 @@ public abstract class TagReader
         type ??= (TagType)BaseStream.ReadByte();
         if (TagEncountered != null)
         {
-            var args = new TagHandledEventArgs { Type = type.Value, IsNamed = named };
+            var args = new TagHandledEventArgs(named, type.Value);
             TagEncountered.Invoke(this, args);
             if (args is { Handled: true, Result: not null })
                 return args.Result;
@@ -99,7 +102,7 @@ public abstract class TagReader
             _ => throw new ArgumentOutOfRangeException(nameof(type), type, null)
         };
         
-        TagRead?.Invoke(this, new TagEventArgs { Tag = value, Type = type.Value });
+        TagRead?.Invoke(this, new TagEventArgs(value, type.Value));
         return value;
     }
 
