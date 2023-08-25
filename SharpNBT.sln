@@ -2,8 +2,6 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SharpNBT", "SharpNBT\SharpNBT.csproj", "{370CC658-797C-4DAA-A907-20A4287D9FEF}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SharpNBT.Tests", "SharpNBT.Tests\SharpNBT.Tests.csproj", "{68B8081F-5856-4B90-991C-7E8CB644B1EE}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
