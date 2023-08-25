@@ -14,12 +14,12 @@ public ref struct Scanner
 
     public bool IsEndOfInput => Position >= Source.Length;
     
-    public Scanner(ReadOnlySpan<byte> utf8Bytes)
+    public Scanner(ReadOnlySpan<byte> utf8Bytes, Encoding encoding)
     {
         Position = -1;
-        var count = Encoding.UTF8.GetCharCount(utf8Bytes);
+        var count = encoding.GetCharCount(utf8Bytes);
         var chars = new char[count];
-        Encoding.UTF8.GetChars(utf8Bytes, chars);
+        encoding.GetChars(utf8Bytes, chars);
         Source = new ReadOnlySpan<char>(chars);
     }
 

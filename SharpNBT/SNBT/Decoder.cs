@@ -1,84 +1,23 @@
-using System.Buffers;
-using System.Data;
-using System.Diagnostics.CodeAnalysis;
+using System;
 using System.Globalization;
-using System.Net.Http.Headers;
 using System.Numerics;
 using System.Text;
-using SharpNBT.Tags;
 
 namespace SharpNBT.SNBT;
-
-
-public ref struct Scanner
-{
-    public ReadOnlySpan<char> Source;
-    public int Position;
-    
-    public char Current => Source[Position];
-
-    public bool IsEndOfInput => Position >= Source.Length;
-    
-    public Scanner(ReadOnlySpan<byte> utf8Bytes)
-    {
-        Position = -1;
-        var count = Encoding.UTF8.GetCharCount(utf8Bytes);
-        var chars = new char[count];
-        Encoding.UTF8.GetChars(utf8Bytes, chars);
-        Source = new ReadOnlySpan<char>(chars);
-    }
-
-    public char Peek(int numChars = 1)
-    {
-        if (Position + numChars >= Source.Length)
-            SyntaxError("Unexpected end of input.");
-        return Source[Position + numChars];
-    }
-    
-    public bool MoveNext(bool skipWhitespace, bool fail)
-    {
-        ReadChar:
-        Position++;
-        if (Position >= Source.Length)
-        {
-            if (fail)
-                SyntaxError("Unexpected end of input.");
-            return false;
-        }
-        
-        if (skipWhitespace && char.IsWhiteSpace(Current))
-            goto ReadChar;
-        return true;
-    }
-
-    public void AssertChar(char c)
-    {
-        if (Current != c)
-            SyntaxError($"Expected \"{c}\", got \"{Current}\".");
-    }
-
-    [DoesNotReturn]
-    public Exception SyntaxError(string message)
-    {
-        // TODO: Format with index,column, etc?
-        throw new SyntaxErrorException(message);
-    }
-}
-
 
 public static class Parser
 {
     public static CompoundTag Parse(string text)
     {
         var bytes = Encoding.UTF8.GetBytes(text);
-        var scanner = new Scanner(bytes);
+        var scanner = new Scanner(bytes, Encoding.UTF8);
         
         scanner.MoveNext(true, true);
         scanner.AssertChar('{');
         return ParseCompound(null, ref scanner);
     }
-    
-    public static CompoundTag ParseCompound(string? name, ref Scanner scanner)
+
+    private static CompoundTag ParseCompound(string? name, ref Scanner scanner)
     {
         scanner.MoveNext(true, true);
         
@@ -182,8 +121,8 @@ public static class Parser
 
         return string.Empty;
     }
-    
-    public static Tag ParseTag(string? name, ref Scanner scanner)
+
+    private static Tag ParseTag(string? name, ref Scanner scanner)
     {
         return scanner.Current switch
         {
@@ -366,8 +305,8 @@ public static class Parser
         scanner.Position++; // Consume the closing ']'
         return values;
     }
-    
-    public static bool AllowedInUnquoted(char c)
+
+    private static bool AllowedInUnquoted(char c)
     {
         return c == '_' || c == '-' ||
                c == '.' || c == '+' ||
