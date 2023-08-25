@@ -2,6 +2,8 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SharpNBT", "SharpNBT\SharpNBT.csproj", "{370CC658-797C-4DAA-A907-20A4287D9FEF}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SharpNBT.Test", "SharpNBT.Test\SharpNBT.Test.csproj", "{9B6B8A29-9E3F-4894-94E5-2405EE8FA3EF}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -16,5 +18,9 @@ Global
 		{68B8081F-5856-4B90-991C-7E8CB644B1EE}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{68B8081F-5856-4B90-991C-7E8CB644B1EE}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{68B8081F-5856-4B90-991C-7E8CB644B1EE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9B6B8A29-9E3F-4894-94E5-2405EE8FA3EF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9B6B8A29-9E3F-4894-94E5-2405EE8FA3EF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9B6B8A29-9E3F-4894-94E5-2405EE8FA3EF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9B6B8A29-9E3F-4894-94E5-2405EE8FA3EF}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
