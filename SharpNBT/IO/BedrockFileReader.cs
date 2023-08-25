@@ -1,83 +1,54 @@
 using System;
 using System.Buffers.Binary;
 using System.IO;
-using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
 
 namespace SharpNBT.IO;
 
 /// <summary>
-/// A NBT reader for the Minecraft Bedrock <b>network</b>. This is not compatible with Minecraft Bedrock NBT that was
-/// read from a file stream, which uses a different format.
+/// A NBT reader for the Minecraft Bedrock <b>files</b>. This is not compatible with Minecraft Bedrock NBT that was
+/// sent over a network stream, which uses a different format.
 /// <para/>
-/// All input data is natively in little-endian format. Integer-types are usually a variable length integer, and not
-/// a fixed width. Sometimes they are also ZigZag-encoded like Protobuf. Also sometimes they are not.
-/// <para/>
-/// Thank you, Microsoft.
+/// All input data is natively in little-endian format, with no variable length integers. Aside from the endianness
+/// difference, this is identical to the Java version.
 /// </summary>
-public class BedrockNetworkReader : TagReader
+public class BedrockTagReader : TagReader
 {
     /// <summary>
-    /// Initializes a new instance of the <see cref="BedrockNetworkReader"/> class.
+    /// Initializes a new instance of the <see cref="BedrockTagReader"/> class.
     /// </summary>
     /// <param name="stream">A stream containing the NBT data.</param>
     /// <param name="encoding">
     /// The text-encoding for strings, or <see langword="null"/> to use the default for the format.
     /// </param>
-    public BedrockNetworkReader(Stream stream, Encoding? encoding = null) : base(stream, encoding ?? Encoding.UTF8)
+    public BedrockTagReader(Stream stream, Encoding? encoding = null) : base(stream, encoding ?? Encoding.UTF8)
     {
     }
-    
+
     /// <summary>
-    /// Reads a variable-length integer from the stream, with optional ZigZag-encoding.
-    /// </summary>
-    /// <param name="bits">The bit-width of the target integer type.</param>
-    /// <param name="zigzag">
-    /// <see langword="true"/> to indicate the value is ZigZag-encoded, otherwise <see langword="false"/>.
-    /// </param>
-    /// <returns>The decoded integer value.</returns>
-    /// <exception cref="OverflowException">
-    /// The value cannot be decoded into an integer with the specified number of <paramref name="bits"/>.
-    /// </exception>
-    private long ReadVarInt(int bits, bool zigzag)
-    {
-        var shift = 0;
-        ulong result = 0;
-        
-        while (true)
-        {
-            var b = (ulong) BaseStream.ReadByte();
-            var tmp = b & 0x7F;
-            result |= tmp << shift;
-
-            if (shift > bits)
-                throw new OverflowException($"Variable length integer cannot be decoded into {bits} bits.");
-
-            if ((b & 0x80) != 0x80)
-            {
-                if (!zigzag)
-                    return Unsafe.As<ulong, long>(ref result);
-                
-                if ((result & 0x1) == 0x1)
-                    return -1 * unchecked((long)(result >> 1) + 1);
-                return unchecked((long)(result >> 1));
-            }
-
-            shift += 7;
-        }
-    }
-    
-    /// <summary>
-    /// Reads a string from the stream. Assumes that the string is length-prefixed with a variable-length integer.
+    /// Reads a string from the stream. Assumes that the string is length-prefixed with an unsigned 16-bit integer.
     /// </summary>
     /// <returns>The string value.</returns>
     private string ReadString()
     {
-        var length = unchecked((int) ReadVarInt(32, false));
+        Span<byte> buffer = stackalloc byte[sizeof(ushort)];
+        BaseStream.ReadExactly(buffer);
+        var length = BinaryPrimitives.ReadUInt16LittleEndian(buffer);
         return ReadString(length);
     }
 
+    /// <summary>
+    /// Reads a signed 32-bit integer from the stream.
+    /// </summary>
+    /// <returns>The integer value.</returns>
+    private int ReadInt32()
+    {
+        Span<byte> buffer = stackalloc byte[sizeof(int)];
+        BaseStream.ReadExactly(buffer);
+        return BinaryPrimitives.ReadInt32LittleEndian(buffer);
+    }
+    
     /// <inheritdoc />
     public override ByteTag ReadByte(bool named)
     {
@@ -98,14 +69,16 @@ public class BedrockNetworkReader : TagReader
     public override IntTag ReadInt(bool named)
     {
         var name = named ? ReadString() : null;
-        return new IntTag(name, (int) ReadVarInt(32, true));
+        return new IntTag(name, ReadInt32());
     }
 
     /// <inheritdoc />
     public override LongTag ReadLong(bool named)
     {
         var name = named ? ReadString() : null;
-        return new LongTag(name, ReadVarInt(64, true));
+        Span<byte> buffer = stackalloc byte[sizeof(long)];
+        BaseStream.ReadExactly(buffer);
+        return new LongTag(name, BinaryPrimitives.ReadInt32LittleEndian(buffer));
     }
 
     /// <inheritdoc />
@@ -136,18 +109,13 @@ public class BedrockNetworkReader : TagReader
     /// <inheritdoc />
     public override ByteArrayTag ReadByteArray(bool named)
     {
-        byte[] values;
         var name = named ? ReadString() : null;
-        var length = (int)ReadVarInt(32, true);
+        var length = ReadInt32();
         if (length == 0)
-        {
-            values = Array.Empty<byte>();
-        }
-        else
-        {
-            values = new byte[length];
-            BaseStream.ReadExactly(values);
-        }
+            return new ByteArrayTag(name, Array.Empty<byte>());
+
+        var values = new byte[length];
+        BaseStream.ReadExactly(values, 0, length);
         return new ByteArrayTag(name, values);
     }
 
@@ -155,7 +123,7 @@ public class BedrockNetworkReader : TagReader
     public override IntArrayTag ReadIntArray(bool named)
     {
         var name = named ? ReadString() : null;
-        var length = (int)ReadVarInt(32, true);
+        var length = ReadInt32();
         if (length == 0)
             return new IntArrayTag(name, Array.Empty<int>());
 
@@ -175,7 +143,7 @@ public class BedrockNetworkReader : TagReader
     public override LongArrayTag ReadLongArray(bool named)
     {
         var name = named ? ReadString() : null;
-        var length = (int)ReadVarInt(32, true);
+        var length = ReadInt32();
         if (length == 0)
             return new LongArrayTag(name, Array.Empty<long>());
 
@@ -196,7 +164,7 @@ public class BedrockNetworkReader : TagReader
     {
         var name = named ? ReadString() : null;
         var childType = (TagType)BaseStream.ReadByte();
-        var length = (int)ReadVarInt(32, true);
+        var length = ReadInt32();
 
         var list = new ListTag(name);
         for (var i = 0; i < length; i++)

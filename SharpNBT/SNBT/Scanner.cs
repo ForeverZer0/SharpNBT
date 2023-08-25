@@ -5,6 +5,7 @@ using System.Text;
 
 namespace SharpNBT.SNBT;
 
+
 public ref struct Scanner
 {
     public ReadOnlySpan<char> Source;

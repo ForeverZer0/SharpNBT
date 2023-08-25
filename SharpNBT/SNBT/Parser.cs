@@ -5,6 +5,9 @@ using System.Text;
 
 namespace SharpNBT.SNBT;
 
+/// <summary>
+/// Parser for stringified NBT (SNBT), which uses a JSON-like syntax for creating NBT tags with plain-text. 
+/// </summary>
 public static class Parser
 {
     public static CompoundTag Parse(string text)

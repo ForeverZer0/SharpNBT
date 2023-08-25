@@ -6,8 +6,20 @@ using System.Text;
 
 namespace SharpNBT.IO;
 
+/// <summary>
+/// A NBT reader for the reference Java version that NBT was designed for.
+/// <para/>
+/// All input data is natively in big-endian format, with no variable length integers.
+/// </summary>
 public class JavaTagReader : TagReader
 {
+    /// <summary>
+    /// Initializes a new instance of the <see cref="JavaTagReader"/> class.
+    /// </summary>
+    /// <param name="stream">A stream containing the NBT data.</param>
+    /// <param name="encoding">
+    /// The text-encoding for strings, or <see langword="null"/> to use the default for the format.
+    /// </param>
     public JavaTagReader(Stream stream, Encoding? encoding = null) : base(stream, encoding ?? Encoding.UTF8)
     {
     }
