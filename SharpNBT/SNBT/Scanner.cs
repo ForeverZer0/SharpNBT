@@ -24,6 +24,10 @@ public ref struct Scanner
         Source = new ReadOnlySpan<char>(chars);
     }
 
+    public Scanner(string text, Encoding encoding) : this(encoding.GetBytes(text), encoding)
+    {
+    }
+
     public char Peek(int numChars = 1)
     {
         if (Position + numChars >= Source.Length)
@@ -56,7 +60,6 @@ public ref struct Scanner
     [DoesNotReturn]
     public Exception SyntaxError(string message)
     {
-        // TODO: Format with index,column, etc?
-        throw new SyntaxErrorException(message);
+        throw new SyntaxErrorException($"Syntax error at index {Position}: {message}");
     }
 }

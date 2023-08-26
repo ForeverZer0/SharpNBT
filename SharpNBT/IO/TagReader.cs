@@ -2,12 +2,30 @@ using System;
 using System.Buffers;
 using System.IO;
 using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 using JetBrains.Annotations;
 
 namespace SharpNBT.IO;
 
 /// <summary>
-/// Abstract base class for types that can read NBT tags from a stream.
+/// Handler for NBT deserialization as a tag is being read from a stream.
+/// </summary>
+/// <param name="reader">The <see cref="TagReader"/> instance invoking the event, which also provides access to the underlying stream.</param>
+/// <param name="named">Flag indicating if the tag has a name that should be read from the stream.</param>
+/// <param name="type">A constant describing the NBT tag type.</param>
+/// <param name="tag">
+/// The value of the tag when the handler has handled the deserialization, otherwise it can safely
+/// be assigned a <see langword="null"/> or default value.</param>
+/// <returns>
+/// <see langword="true"/> when the read operation has been handled, in which case <paramref name="tag"/> has been
+/// assigned a valid value, otherwise <see langword="false"/> if it has been not handled, and <paramref name="tag"/>
+/// can safely be assign a <see langword="null"/> value.
+/// </returns>
+public delegate bool TagReadHandler(TagReader reader, bool named, TagType type, out Tag tag);
+
+/// <summary>
+/// Concrete implementation of a <see cref="TagReader"/> to provide shared functionality.
 /// </summary>
 [PublicAPI]
 public abstract class TagReader
@@ -16,7 +34,7 @@ public abstract class TagReader
     /// Maximum number of bytes that will be allocated on the stack.
     /// </summary>
     protected const int StackAllocMax = 512;
-
+    
     /// <summary>
     /// A memory pool that can be used for fast allocations of temporary memory.
     /// </summary>
@@ -25,23 +43,18 @@ public abstract class TagReader
     /// <summary>
     /// Occurs when a tag has been deserialized from the stream.
     /// </summary>
-    public EventHandler<TagEventArgs>? TagRead;
-
-    /// <summary>
-    /// Occurs when the a tag is encountered in the stream, but before it has been processed by the reader.
-    /// </summary>
-    public EventHandler<TagHandledEventArgs>? TagEncountered;
+    public event EventHandler<TagEventArgs>? TagRead;
     
     /// <summary>
-    /// Gets the base stream that is the source for the reader.
+    /// Gets the underlying stream.
     /// </summary>
     public Stream BaseStream { get; }
-
+    
     /// <summary>
     /// Gets the encoding used for strings.
     /// </summary>
     public Encoding Encoding { get; }
-
+    
     /// <summary>
     /// Initializes a new instance of the <see cref="TagReader"/> class.
     /// </summary>
@@ -57,34 +70,25 @@ public abstract class TagReader
     }
     
     /// <summary>
-    /// Reads a tag from the current position in the stream.
+    /// Reads a tag of the given type from the stream.
     /// </summary>
     /// <param name="named">
     /// Flag indicating if this tag is named, only <see langowrd="false"/> when a tag is a direct child of
     /// a <see cref="ListTag"/>.
     /// </param>
-    /// <param name="type">
-    /// The type of the tag to read, or <c>null</c> to indicate it is unknown, in which case it is assumed that it
-    /// should be read as the next byte from the stream.
-    /// </param>
-    /// <returns>The deserialized tag.</returns>
-    /// <exception cref="ArgumentOutOfRangeException">
-    /// When an invalid tag type is supplied
-    /// <para>-- or --</para>
-    /// an invalid tag type is read from the stream, indicating it is positioned incorrectly.
-    /// </exception>
-    public Tag ReadTag(bool named, TagType? type = null)
+    /// <param name="type">The type of tag to read, or <see langword="null"/> to read the type from the stream.</param>
+    /// <returns>The deserialized tag instance.</returns>
+    public Tag Read(bool named, TagType? type = null)
     {
         type ??= (TagType)BaseStream.ReadByte();
-        if (TagEncountered != null)
+
+        if (readHandler != null && readHandler.Invoke(this, named, type.Value, out var tag))
         {
-            var args = new TagHandledEventArgs(named, type.Value);
-            TagEncountered.Invoke(this, args);
-            if (args is { Handled: true, Result: not null })
-                return args.Result;
+            OnTagRead(tag, type.Value);
+            return tag;
         }
         
-        Tag value = type.Value switch
+        tag = type.Value switch
         {
             TagType.End => new EndTag(),
             TagType.Byte => ReadByte(named),
@@ -102,10 +106,82 @@ public abstract class TagReader
             _ => throw new ArgumentOutOfRangeException(nameof(type), type, null)
         };
         
-        TagRead?.Invoke(this, new TagEventArgs(value, type.Value));
-        return value;
+        OnTagRead(tag, type.Value);
+        return tag;
     }
 
+    /// <summary>
+    /// Invokes the <see cref="TagRead"/> event when a tag is read from the stream.
+    /// </summary>
+    /// <param name="tag">The deserialized tag.</param>
+    /// <param name="type">A constant describing the tag type.</param>
+    protected virtual void OnTagRead(Tag tag, TagType type)
+    {
+        TagRead?.Invoke(this, new TagEventArgs(tag, type));
+    }
+    
+    /// <summary>
+    /// Sets a callback that will be triggered for each tag prior to it being read from the stream.
+    /// </summary>
+    /// <param name="handler">The handler to receive the callback, or <see langword="null"/> to unset it.</param>
+    /// <returns>The callback that was previously set, or <see langword="null"/>.</returns>
+    public TagReadHandler? SetHandler(TagReadHandler? handler)
+    {
+        var current = readHandler;
+        readHandler = handler;
+        return current;
+    }
+    
+    /// <summary>
+    /// Reads a tag of the given type from the stream.
+    /// </summary>
+    /// <param name="named">
+    /// Flag indicating if this tag is named, only <see langowrd="false"/> when a tag is a direct child of
+    /// a <see cref="ListTag"/>.
+    /// </param>
+    /// <typeparam name="TTag">A tag type that implements <see cref="ITag"/>.</typeparam>
+    /// <returns>The deserialized tag instance.</returns>
+    /// <exception cref="InvalidOperationException">The tag is not of the type specified by <typeparamref name="TTag"/>.</exception>
+    public TTag Read<TTag>(bool named = true) where TTag : Tag, ITag
+    {
+        var tag = Read(named, TTag.Type);
+        if (tag is TTag value)
+            return value;
+        
+        throw new InvalidOperationException("The tag was not of the specified type.");
+    }
+    
+    /// <summary>
+    /// Reads a tag of the given type from the stream.
+    /// </summary>
+    /// <param name="named">
+    /// Flag indicating if this tag is named, only <see langowrd="false"/> when a tag is a direct child of
+    /// a <see cref="ListTag"/>.
+    /// </param>
+    /// <param name="type">The type of tag to read, or <see langword="null"/> to read the type from the stream.</param>
+    /// <param name="token">A synchronization object for providing task cancellation support.</param>
+    /// <returns>The deserialized tag instance.</returns>
+    public virtual Task<Tag> ReadAsync(bool named, TagType? type = null, CancellationToken token = default)
+    {
+        return Task.Run(() => Read(named, type), token);
+    }
+
+    /// <summary>
+    /// Asynchronously reads a tag of the given type from the stream.
+    /// </summary>
+    /// <param name="named">
+    /// Flag indicating if this tag is named, only <see langowrd="false"/> when a tag is a direct child of
+    /// a <see cref="ListTag"/>.
+    /// </param>
+    /// <param name="token">A synchronization object for providing task cancellation support.</param>
+    /// <typeparam name="TTag">A tag type that implements <see cref="ITag"/>.</typeparam>
+    /// <returns>The deserialized tag instance.</returns>
+    /// <exception cref="InvalidOperationException">The tag is not of the type specified by <typeparamref name="TTag"/>.</exception>
+    public virtual Task<TTag> ReadAsync<TTag>(bool named = true, CancellationToken token = default) where TTag : Tag, ITag
+    {
+        return Task.Run(() => Read<TTag>(named), token);
+    }
+    
     /// <summary>
     /// Read a <see cref="string"/> of the specified <paramref name="length"/> from the underlying stream, interpreted
     /// using the configured <see cref="Encoding"/>.
@@ -141,7 +217,7 @@ public abstract class TagReader
     /// </param>
     /// <remarks>It is assumed that the stream is positioned at the beginning of the tag payload.</remarks>
     /// <returns>The deserialized <see cref="ByteTag"/> instance.</returns>
-    public abstract ByteTag ReadByte(bool named);
+    protected abstract ByteTag ReadByte(bool named);
     
     /// <summary>
     /// Reads a <see cref="ShortTag"/> from the stream.
@@ -152,7 +228,7 @@ public abstract class TagReader
     /// </param>
     /// <remarks>It is assumed that the stream is positioned at the beginning of the tag payload.</remarks>
     /// <returns>The deserialized <see cref="ShortTag"/> instance.</returns>
-    public abstract ShortTag ReadShort(bool named);
+    protected abstract ShortTag ReadShort(bool named);
     
     /// <summary>
     /// Reads a <see cref="IntTag"/> from the stream.
@@ -163,7 +239,7 @@ public abstract class TagReader
     /// </param>
     /// <remarks>It is assumed that the stream is positioned at the beginning of the tag payload.</remarks>
     /// <returns>The deserialized <see cref="IntTag"/> instance.</returns>
-    public abstract IntTag ReadInt(bool named);
+    protected abstract IntTag ReadInt(bool named);
     
     /// <summary>
     /// Reads a <see cref="LongTag"/> from the stream.
@@ -174,7 +250,7 @@ public abstract class TagReader
     /// </param>
     /// <remarks>It is assumed that the stream is positioned at the beginning of the tag payload.</remarks>
     /// <returns>The deserialized <see cref="LongTag"/> instance.</returns>
-    public abstract LongTag ReadLong(bool named);
+    protected abstract LongTag ReadLong(bool named);
     
     /// <summary>
     /// Reads a <see cref="FloatTag"/> from the stream.
@@ -185,7 +261,7 @@ public abstract class TagReader
     /// </param>
     /// <remarks>It is assumed that the stream is positioned at the beginning of the tag payload.</remarks>
     /// <returns>The deserialized <see cref="FloatTag"/> instance.</returns>
-    public abstract FloatTag ReadFloat(bool named);
+    protected abstract FloatTag ReadFloat(bool named);
     
     /// <summary>
     /// Reads a <see cref="DoubleTag"/> from the stream.
@@ -196,7 +272,7 @@ public abstract class TagReader
     /// </param>
     /// <remarks>It is assumed that the stream is positioned at the beginning of the tag payload.</remarks>
     /// <returns>The deserialized <see cref="DoubleTag"/> instance.</returns>
-    public abstract DoubleTag ReadDouble(bool named);
+    protected abstract DoubleTag ReadDouble(bool named);
     
     /// <summary>
     /// Reads a <see cref="StringTag"/> from the stream.
@@ -207,7 +283,7 @@ public abstract class TagReader
     /// </param>
     /// <remarks>It is assumed that the stream is positioned at the beginning of the tag payload.</remarks>
     /// <returns>The deserialized <see cref="StringTag"/> instance.</returns>
-    public abstract StringTag ReadString(bool named);
+    protected abstract StringTag ReadString(bool named);
     
     /// <summary>
     /// Reads a <see cref="ByteArrayTag"/> from the stream.
@@ -218,7 +294,7 @@ public abstract class TagReader
     /// </param>
     /// <remarks>It is assumed that the stream is positioned at the beginning of the tag payload.</remarks>
     /// <returns>The deserialized <see cref="ByteArrayTag"/> instance.</returns>
-    public abstract ByteArrayTag ReadByteArray(bool named);
+    protected abstract ByteArrayTag ReadByteArray(bool named);
     
     /// <summary>
     /// Reads a <see cref="IntArrayTag"/> from the stream.
@@ -229,7 +305,7 @@ public abstract class TagReader
     /// </param>
     /// <remarks>It is assumed that the stream is positioned at the beginning of the tag payload.</remarks>
     /// <returns>The deserialized <see cref="IntArrayTag"/> instance.</returns>
-    public abstract IntArrayTag ReadIntArray(bool named);
+    protected abstract IntArrayTag ReadIntArray(bool named);
     
     /// <summary>
     /// Reads a <see cref="LongArrayTag"/> from the stream.
@@ -240,7 +316,7 @@ public abstract class TagReader
     /// </param>
     /// <remarks>It is assumed that the stream is positioned at the beginning of the tag payload.</remarks>
     /// <returns>The deserialized <see cref="LongArrayTag"/> instance.</returns>
-    public abstract LongArrayTag ReadLongArray(bool named);
+    protected abstract LongArrayTag ReadLongArray(bool named);
     
     /// <summary>
     /// Reads a <see cref="ListTag"/> from the stream.
@@ -251,7 +327,7 @@ public abstract class TagReader
     /// </param>
     /// <remarks>It is assumed that the stream is positioned at the beginning of the tag payload.</remarks>
     /// <returns>The deserialized <see cref="ListTag"/> instance.</returns>
-    public abstract ListTag ReadList(bool named);
+    protected abstract ListTag ReadList(bool named);
     
     /// <summary>
     /// Reads a <see cref="CompoundTag"/> from the stream.
@@ -262,5 +338,7 @@ public abstract class TagReader
     /// </param>
     /// <remarks>It is assumed that the stream is positioned at the beginning of the tag payload.</remarks>
     /// <returns>The deserialized <see cref="CompoundTag"/> instance.</returns>
-    public abstract CompoundTag ReadCompound(bool named);
+    protected abstract CompoundTag ReadCompound(bool named);
+
+    private TagReadHandler? readHandler;
 }

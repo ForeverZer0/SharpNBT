@@ -93,30 +93,6 @@ namespace SharpNBT {
             }
         }
         
-        internal static string ZLibValueGreater15 {
-            get {
-                return ResourceManager.GetString("ZLibValueGreater15", resourceCulture);
-            }
-        }
-        
-        internal static string ZLibValueGreater31 {
-            get {
-                return ResourceManager.GetString("ZLibValueGreater31", resourceCulture);
-            }
-        }
-        
-        internal static string CRCFail {
-            get {
-                return ResourceManager.GetString("CRCFail", resourceCulture);
-            }
-        }
-        
-        internal static string ZlibUnsupported {
-            get {
-                return ResourceManager.GetString("ZlibUnsupported", resourceCulture);
-            }
-        }
-        
         internal static string WordElement {
             get {
                 return ResourceManager.GetString("WordElement", resourceCulture);

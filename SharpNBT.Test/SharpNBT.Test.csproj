@@ -21,4 +21,8 @@
       <Folder Include="Data\" />
     </ItemGroup>
 
+    <ItemGroup>
+      <ProjectReference Include="..\SharpNBT\SharpNBT.csproj" />
+    </ItemGroup>
+
 </Project>

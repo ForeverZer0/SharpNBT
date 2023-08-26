@@ -42,18 +42,6 @@
     <data name="VarIntCannotDecode" xml:space="preserve">
         <value>Cannot decode value from bytes.</value>
     </data>
-    <data name="ZLibValueGreater15" xml:space="preserve">
-        <value>Value cannot be greater than 15.</value>
-    </data>
-    <data name="ZLibValueGreater31" xml:space="preserve">
-        <value>Value cannot be greater than 31.</value>
-    </data>
-    <data name="CRCFail" xml:space="preserve">
-        <value>CRC validation failed.</value>
-    </data>
-    <data name="ZlibUnsupported" xml:space="preserve">
-        <value>Unsupported stream.</value>
-    </data>
     <data name="WordElement" xml:space="preserve">
         <value>element</value>
     </data>

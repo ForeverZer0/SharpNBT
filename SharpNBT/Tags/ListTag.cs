@@ -153,7 +153,7 @@ public class ListTag<TTag> : Tag, IListTag<TTag> where TTag : ITag
 /// is valid for the NBT format.
 /// </remarks>
 [PublicAPI]
-public class ListTag :  Tag, IListTag<Tag>
+public class ListTag : Tag, IListTag<Tag>
 {
     private TagType? childType;
     private readonly List<Tag> list;
@@ -217,7 +217,7 @@ public class ListTag :  Tag, IListTag<Tag>
     /// <inheritdoc />
     IEnumerator IEnumerable.GetEnumerator() => ((IEnumerable)list).GetEnumerator();
 
-    /// <inheritdoc />
+    /// <inheritdoc cref="ICollection{T}.Add" />
     public void Add(Tag item) => list.Add(AssertType(item));
 
     /// <inheritdoc />

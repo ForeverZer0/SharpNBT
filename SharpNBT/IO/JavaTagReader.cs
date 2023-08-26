@@ -48,14 +48,14 @@ public class JavaTagReader : TagReader
     }
     
     /// <inheritdoc />
-    public override ByteTag ReadByte(bool named)
+    protected override ByteTag ReadByte(bool named)
     {
         var name = named ? ReadString() : null;
         return new ByteTag(name, BaseStream.ReadByte());
     }
 
     /// <inheritdoc />
-    public override ShortTag ReadShort(bool named)
+    protected override ShortTag ReadShort(bool named)
     {
         var name = named ? ReadString() : null;
         Span<byte> buffer = stackalloc byte[sizeof(short)];
@@ -64,14 +64,14 @@ public class JavaTagReader : TagReader
     }
 
     /// <inheritdoc />
-    public override IntTag ReadInt(bool named)
+    protected override IntTag ReadInt(bool named)
     {
         var name = named ? ReadString() : null;
         return new IntTag(name, ReadInt32());
     }
 
     /// <inheritdoc />
-    public override LongTag ReadLong(bool named)
+    protected override LongTag ReadLong(bool named)
     {
         var name = named ? ReadString() : null;
         Span<byte> buffer = stackalloc byte[sizeof(long)];
@@ -80,7 +80,7 @@ public class JavaTagReader : TagReader
     }
 
     /// <inheritdoc />
-    public override FloatTag ReadFloat(bool named)
+    protected override FloatTag ReadFloat(bool named)
     {
         var name = named ? ReadString() : null;
         Span<byte> buffer = stackalloc byte[sizeof(float)];
@@ -89,7 +89,7 @@ public class JavaTagReader : TagReader
     }
 
     /// <inheritdoc />
-    public override DoubleTag ReadDouble(bool named)
+    protected override DoubleTag ReadDouble(bool named)
     {
         var name = named ? ReadString() : null;
         Span<byte> buffer = stackalloc byte[sizeof(double)];
@@ -98,17 +98,15 @@ public class JavaTagReader : TagReader
     }
 
     /// <inheritdoc />
-    public override StringTag ReadString(bool named)
+    protected override StringTag ReadString(bool named)
     {
         var name = named ? ReadString() : null;
         return new StringTag(name, ReadString());
     }
 
     /// <inheritdoc />
-    public override ByteArrayTag ReadByteArray(bool named)
+    protected override ByteArrayTag ReadByteArray(bool named)
     {
-        
-        
         var name = named ? ReadString() : null;
         var length = ReadInt32();
         if (length == 0)
@@ -120,7 +118,7 @@ public class JavaTagReader : TagReader
     }
 
     /// <inheritdoc />
-    public override IntArrayTag ReadIntArray(bool named)
+    protected override IntArrayTag ReadIntArray(bool named)
     {
         var name = named ? ReadString() : null;
         var length = ReadInt32();
@@ -129,18 +127,18 @@ public class JavaTagReader : TagReader
 
         var values = new int[length];
         BaseStream.ReadExactly(MemoryMarshal.Cast<int, byte>(values));
+
+        if (!BitConverter.IsLittleEndian) 
+            return new IntArrayTag(name, values);
         
-        if (BitConverter.IsLittleEndian)
-        {
-            for (var i = 0; i < length; i++)
-                values[i] = values[i].SwapEndian();
-        }
+        for (var i = 0; i < length; i++)
+            values[i] = values[i].SwapEndian();
 
         return new IntArrayTag(name, values);
     }
 
     /// <inheritdoc />
-    public override LongArrayTag ReadLongArray(bool named)
+    protected override LongArrayTag ReadLongArray(bool named)
     {
         var name = named ? ReadString() : null;
         var length = ReadInt32();
@@ -149,18 +147,18 @@ public class JavaTagReader : TagReader
 
         var values = new long[length];
         BaseStream.ReadExactly(MemoryMarshal.Cast<long, byte>(values));
+
+        if (!BitConverter.IsLittleEndian) 
+            return new LongArrayTag(name, values);
         
-        if (BitConverter.IsLittleEndian)
-        {
-            for (var i = 0; i < length; i++)
-                values[i] = values[i].SwapEndian();
-        }
+        for (var i = 0; i < length; i++)
+            values[i] = values[i].SwapEndian();
 
         return new LongArrayTag(name, values);
     }
 
     /// <inheritdoc />
-    public override ListTag ReadList(bool named)
+    protected override ListTag ReadList(bool named)
     {
         var name = named ? ReadString() : null;
         var childType = (TagType)BaseStream.ReadByte();
@@ -168,20 +166,20 @@ public class JavaTagReader : TagReader
 
         var list = new ListTag(name);
         for (var i = 0; i < length; i++)
-            list.Add(ReadTag(false, childType));
+            list.Add(Read(false, childType));
 
         return list;
     }
 
     /// <inheritdoc />
-    public override CompoundTag ReadCompound(bool named)
+    protected override CompoundTag ReadCompound(bool named)
     {
         var name = named ? ReadString() : null;
         var compound = new CompoundTag(name);
         
         while (true)
         {
-            var child = ReadTag(true);
+            var child = Read(true);
             if (child is EndTag)
                 break;
             compound.Add(child);
