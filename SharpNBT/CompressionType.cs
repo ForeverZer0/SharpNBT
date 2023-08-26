@@ -1,33 +1,31 @@
 using JetBrains.Annotations;
 
-namespace SharpNBT
+namespace SharpNBT;
+
+/// <summary>
+/// Describes compression formats supported by the NBT specification.
+/// </summary>
+[PublicAPI]
+public enum CompressionType : byte
 {
     /// <summary>
-    /// Describes compression formats supported by the NBT specification.
+    /// No compression.
     /// </summary>
-    [PublicAPI]
-    public enum CompressionType : byte
-    {
-        /// <summary>
-        /// No compression.
-        /// </summary>
-        None,
+    None,
         
-        /// <summary>
-        /// GZip compression
-        /// </summary>
-        GZip,
+    /// <summary>
+    /// GZip compression
+    /// </summary>
+    GZip,
         
-        /// <summary>
-        /// ZLib compression
-        /// </summary>
-        ZLib,
+    /// <summary>
+    /// ZLib compression
+    /// </summary>
+    ZLib,
         
-        /// <summary>
-        /// Automatically detect compression using magic numbers.
-        /// </summary>
-        /// <remarks>This is not a valid value when specifying a compression type for <b>writing</b>.</remarks>
-        AutoDetect = 0xFF
-    }
-
+    /// <summary>
+    /// Automatically detect compression using magic numbers.
+    /// </summary>
+    /// <remarks>This is not a valid value when specifying a compression type for <b>writing</b>.</remarks>
+    AutoDetect = 0xFF
 }
