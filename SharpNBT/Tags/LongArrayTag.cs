@@ -37,6 +37,6 @@ public class LongArrayTag : ArrayTag<long>, ITag
     public override string ToString()
     {
         var word = Count == 1 ? "entry" : "entries";
-        return $"TAG_LongArray({PrettyName}): {Count} {word}";
+        return $"TAG_LongArray({PrettyName}): [{Count} {word}]";
     }
 }

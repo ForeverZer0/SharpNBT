@@ -126,7 +126,7 @@ public class CompoundTag : Tag, IDictionary<string, Tag>, ITag
     public override string ToString()
     {
         var word = Count == 1 ? "entry" : "entries";
-        return $"TAG_Compound({PrettyName}): {Count} {word}";
+        return $"TAG_Compound({PrettyName}): [{Count} {word}]";
     }
 
     /// <inheritdoc />

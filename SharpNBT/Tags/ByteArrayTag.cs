@@ -56,6 +56,6 @@ public class ByteArrayTag : ArrayTag<byte>, ITag
     public override string ToString()
     {
         var word = Count == 1 ? "entry" : "entries";
-        return $"TAG_ByteArray({PrettyName}): {Count} {word}";
+        return $"TAG_ByteArray({PrettyName}): [{Count} {word}]";
     }
 }

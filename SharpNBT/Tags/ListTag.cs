@@ -273,7 +273,7 @@ public class ListTag : Tag, IListTag<Tag>
     public override string ToString()
     {
         var word = Count == 1 ? "entry" : "entries";
-        return $"TAG_List({PrettyName}): {Count} {word}";
+        return $"TAG_List({PrettyName}): [{Count} {word}]";
     }
 
     /// <inheritdoc />

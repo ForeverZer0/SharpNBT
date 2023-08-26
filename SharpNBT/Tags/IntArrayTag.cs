@@ -37,6 +37,6 @@ public class IntArrayTag : ArrayTag<int>, ITag
     public override string ToString()
     {
         var word = Count == 1 ? "entry" : "entries";
-        return $"TAG_IntArray({PrettyName}): {Count} {word}";
+        return $"TAG_IntArray({PrettyName}): [{Count} {word}]";
     }
 }
