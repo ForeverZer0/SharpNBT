@@ -116,6 +116,12 @@ public class CompoundTag : Tag, IDictionary<string, Tag>, ITag
         set => dict[key] = AssertName(value);
     }
 
+    public TTag Get<TTag>(string name) where TTag : Tag, ITag
+    {
+        // TODO
+        return (TTag) dict[name];
+    }
+
     /// <inheritdoc />
     public ICollection<string> Keys => dict.Keys;
 

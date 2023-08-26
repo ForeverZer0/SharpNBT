@@ -25,4 +25,10 @@
       <ProjectReference Include="..\SharpNBT\SharpNBT.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+      <None Update="Data\bigtest.nbt">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
+    </ItemGroup>
+
 </Project>

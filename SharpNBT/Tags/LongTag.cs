@@ -8,10 +8,13 @@ namespace SharpNBT;
 /// An NBT tag containing a signed 64-bit integer.
 /// </summary>
 [PublicAPI]
-public class LongTag : NumericTag<long>, ITag
+public class LongTag : NumericTag<long>, IValueTag<long>
 {
     /// <inheritdoc />
-    static TagType ITag.Type => TagType.Long;
+    static TagType ITag.Type => Type;
+
+    /// <inheritdoc cref="ITag.Type"/>
+    public static TagType Type => TagType.Long;
 
     /// <summary>
     /// Gets the value of the tag as an unsigned value.

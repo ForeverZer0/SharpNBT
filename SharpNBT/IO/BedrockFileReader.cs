@@ -166,7 +166,7 @@ public class BedrockTagReader : TagReader
         var childType = (TagType)BaseStream.ReadByte();
         var length = ReadInt32();
 
-        var list = new ListTag(name);
+        var list = new IListTag(name);
         for (var i = 0; i < length; i++)
             list.Add(Read(false, childType));
 

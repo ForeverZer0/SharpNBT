@@ -11,15 +11,12 @@ namespace SharpNBT;
 /// Abstract base class for NBT tag types.
 /// </summary>
 [PublicAPI]
-public abstract class Tag : ITag, IEquatable<Tag>
+public abstract class Tag : IEquatable<Tag>
 {
     /// <summary>
     /// The default name when the NBT tag has no name. This is for display/debugging purposes only.
     /// </summary>
     protected const string NoName = "None";
-    
-    /// <inheritdoc />
-    static TagType ITag.Type => TagType.End;
     
     /// <inheritdoc />
     public string? Name { get; }
@@ -59,7 +56,7 @@ public abstract class Tag : ITag, IEquatable<Tag>
     /// where necessary.
     /// </summary>
     protected string PrettyName => string.IsNullOrWhiteSpace(Name) ? NoName : $"\"{Name}\"";
-
+    
     /// <inheritdoc />
     public bool Equals(Tag? other)
     {

@@ -76,7 +76,7 @@ public class JavaTagReader : TagReader
         var name = named ? ReadString() : null;
         Span<byte> buffer = stackalloc byte[sizeof(long)];
         BaseStream.ReadExactly(buffer);
-        return new LongTag(name, BinaryPrimitives.ReadInt32BigEndian(buffer));
+        return new LongTag(name, BinaryPrimitives.ReadInt64BigEndian(buffer));
     }
 
     /// <inheritdoc />

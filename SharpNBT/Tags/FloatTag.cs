@@ -6,7 +6,7 @@ namespace SharpNBT;
 /// An NBT tag that containing a 32-bit IEEE-754 single-precision floating point number.
 /// </summary>
 [PublicAPI]
-public class FloatTag : NumericTag<float>, ITag
+public class FloatTag : NumericTag<float>, IValueTag<float>
 {
     /// <inheritdoc />
     static TagType ITag.Type => TagType.Float;

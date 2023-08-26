@@ -35,3 +35,11 @@ public interface ITag
     /// <exception cref="IOException">The <paramref name="stream"/> is not opened for writing.</exception>
     void PrettyPrint(Stream stream);
 }
+
+// TODO
+
+[PublicAPI]
+public interface IValueTag<T> : ITag
+{
+    T Value { get; }
+}

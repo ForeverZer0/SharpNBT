@@ -8,7 +8,7 @@ namespace SharpNBT;
 /// An NBT tag containing a string value.
 /// </summary>
 [PublicAPI]
-public class StringTag : Tag, ITag, IEquatable<StringTag>
+public class StringTag : Tag, IValueTag<string>, IEquatable<StringTag>
 {
     private string? stringValue;
     private byte[]? utf8Bytes;

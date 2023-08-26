@@ -8,7 +8,7 @@ namespace SharpNBT;
 /// An NBT tag containing a signed 16-bit integer.
 /// </summary>
 [PublicAPI]
-public class ShortTag : NumericTag<short>, ITag
+public class ShortTag : NumericTag<short>, IValueTag<short>
 {
     /// <inheritdoc />
     static TagType ITag.Type => TagType.Short;

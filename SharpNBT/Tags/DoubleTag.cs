@@ -6,7 +6,7 @@ namespace SharpNBT;
 /// An NBT tag that containing a 64-bit IEEE-754 double-precision floating point number.
 /// </summary>
 [PublicAPI]
-public class DoubleTag : NumericTag<double>, ITag
+public class DoubleTag : NumericTag<double>, IValueTag<double>
 {
     /// <inheritdoc />
     static TagType ITag.Type => TagType.Double;

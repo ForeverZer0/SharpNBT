@@ -1,4 +1,5 @@
 using System;
+using System.Buffers;
 using System.IO;
 using System.Text;
 using System.Threading;
@@ -30,14 +31,24 @@ public delegate bool TagWriteHandler(TagWriter writer, Tag tag, TagType type, bo
 public abstract class TagWriter
 {
     /// <summary>
+    /// Maximum number of bytes that will be allocated on the stack.
+    /// </summary>
+    protected const int StackAllocMax = 512;
+    
+    /// <summary>
+    /// A memory pool that can be used for fast allocations of temporary memory.
+    /// </summary>
+    protected static ArrayPool<byte> MemoryPool => ArrayPool<byte>.Shared;
+    
+    /// <summary>
     /// Gets the underlying stream.
     /// </summary>
-    Stream BaseStream { get; }
+    public Stream BaseStream { get; }
     
     /// <summary>
     /// Gets the encoding used for strings.
     /// </summary>
-    Encoding Encoding { get; }
+    public Encoding Encoding { get; }
     
     /// <summary>
     /// Occurs when a tag has been serialized to the stream.
@@ -63,9 +74,10 @@ public abstract class TagWriter
     /// </summary>
     /// <param name="tag">The NBT tag to write.</param>
     /// <param name="named">Flag indicating if the name of the tag should be written.</param>
+    /// <param name="typed">Flag indicating if the type prefix should be written.</param>
     /// <typeparam name="TTag">A <see cref="Tag"/> type that implements <see cref="ITag"/>.</typeparam>
     /// <returns>The number of bytes written to the stream.</returns>
-    public int Write<TTag>(TTag tag, bool named = true) where TTag : Tag, ITag
+    public int Write<TTag>(TTag tag, bool named = true, bool typed = true) where TTag : Tag, ITag
     {
         if (writeHandler != null && writeHandler.Invoke(this, tag, TTag.Type, named, out var count))
         {
@@ -73,22 +85,21 @@ public abstract class TagWriter
             return count;
         }
         
-        BaseStream.WriteByte((byte)TTag.Type);
-        count = 1 + tag switch
+        count = tag switch
         {
-            EndTag _ => WriteEnd(),
-            ByteTag b => WriteByte(b, named),
-            ShortTag s => WriteShort(s, named),
-            IntTag i => WriteInt(i, named),
-            LongTag l => WriteLong(l, named),
-            FloatTag f => WriteFloat(f, named),
-            DoubleTag d => WriteDouble(d, named),
-            StringTag str => WriteString(str, named),
-            ByteArrayTag ba => WriteByteArray(ba, named),
-            IntArrayTag ia => WriteIntArray(ia, named),
-            LongArrayTag la => WriteLongArray(la, named),
-            ListTag list => WriteList(list, named),
-            CompoundTag compound => WriteCompound(compound, named),
+            EndTag e => WriteEnd(e, false, false),
+            ByteTag b => WriteByte(b, named, typed),
+            ShortTag s => WriteShort(s, named, typed),
+            IntTag i => WriteInt(i, named, typed),
+            LongTag l => WriteLong(l, named, typed),
+            FloatTag f => WriteFloat(f, named, typed),
+            DoubleTag d => WriteDouble(d, named, typed),
+            StringTag str => WriteString(str, named, typed),
+            ByteArrayTag ba => WriteByteArray(ba, named, typed),
+            IntArrayTag ia => WriteIntArray(ia, named, typed),
+            LongArrayTag la => WriteLongArray(la, named, typed),
+            IListTag list => WriteList(list, named, typed),
+            CompoundTag compound => WriteCompound(compound, named, typed),
             _ => throw new ArgumentException("Unknown tag type.", nameof(tag))
         };
         
@@ -111,12 +122,13 @@ public abstract class TagWriter
     /// </summary>
     /// <param name="tag">The NBT tag to write.</param>
     /// <param name="named">Flag indicating if the name of the tag should be written.</param>
+    /// <param name="typed">Flag indicating if the type prefix should be written.</param>
     /// <param name="token">A synchronization object for providing task cancellation support.</param>
     /// <typeparam name="TTag">A <see cref="Tag"/> type that implements <see cref="ITag"/>.</typeparam>
     /// <returns>The number of bytes written to the stream.</returns>
-    public virtual Task<int> WriteAsync<TTag>(TTag tag, bool named = true, CancellationToken token = default) where TTag : Tag, ITag
+    public virtual Task<int> WriteAsync<TTag>(TTag tag, bool named = true, bool typed = true, CancellationToken token = default) where TTag : Tag, ITag
     {
-        return Task.Run(() => Write(tag, named), token);
+        return Task.Run(() => Write(tag, named, typed), token);
     }
     
     /// <summary>
@@ -131,119 +143,123 @@ public abstract class TagWriter
         return current;
     }
     
-    protected int WriteEnd()
+    /// <summary>
+    /// Serializes a <see cref="ByteTag"/> to the underlying stream.
+    /// </summary>
+    /// <remarks>This method is only present to match signatures with other methods.</remarks>
+    protected virtual int WriteEnd(EndTag? tag, bool named, bool typed)
     {
         BaseStream.WriteByte(0);
         return 1;
     }
-    
+
     /// <summary>
     /// Serializes a <see cref="ByteTag"/> to the underlying stream.
     /// </summary>
     /// <param name="tag">The tag instance to write.</param>
     /// <param name="named">Flag indicating if the name of the tag should be written.</param>
+    /// <param name="typed">Flag indicating if the type prefix should be written.</param>
     /// <returns>The number of bytes written.</returns>
-    /// <remarks>Implementors must <b>not</b> write the type prefix.</remarks>
-    protected abstract int WriteByte(ByteTag tag, bool named);
+    protected abstract int WriteByte(ByteTag tag, bool named, bool typed);
     
     /// <summary>
     /// Serializes a <see cref="ShortTag"/> to the underlying stream.
     /// </summary>
     /// <param name="tag">The tag instance to write.</param>
     /// <param name="named">Flag indicating if the name of the tag should be written.</param>
+    /// <param name="typed">Flag indicating if the type prefix should be written.</param>
     /// <returns>The number of bytes written.</returns>
-    /// <remarks>Implementors must <b>not</b> write the type prefix.</remarks>
-    protected abstract int WriteShort(ShortTag tag, bool named);
+    protected abstract int WriteShort(ShortTag tag, bool named, bool typed);
     
     /// <summary>
     /// Serializes a <see cref="IntTag"/> to the underlying stream.
     /// </summary>
     /// <param name="tag">The tag instance to write.</param>
     /// <param name="named">Flag indicating if the name of the tag should be written.</param>
+    /// <param name="typed">Flag indicating if the type prefix should be written.</param>
     /// <returns>The number of bytes written.</returns>
-    /// <remarks>Implementors must <b>not</b> write the type prefix.</remarks>
-    protected abstract int WriteInt(IntTag tag, bool named);
+    protected abstract int WriteInt(IntTag tag, bool named, bool typed);
     
     /// <summary>
     /// Serializes a <see cref="LongTag"/> payload to the underlying stream.
     /// </summary>
     /// <param name="tag">The tag instance to write.</param>
     /// <param name="named">Flag indicating if the name of the tag should be written.</param>
+    /// <param name="typed">Flag indicating if the type prefix should be written.</param>
     /// <returns>The number of bytes written.</returns>
-    /// <remarks>Implementors must <b>not</b> write the type prefix.</remarks>
-    protected abstract int WriteLong(LongTag tag, bool named);
+    protected abstract int WriteLong(LongTag tag, bool named, bool typed);
     
     /// <summary>
     /// Serializes a <see cref="FloatTag"/> payload to the underlying stream.
     /// </summary>
     /// <param name="tag">The tag instance to write.</param>
     /// <param name="named">Flag indicating if the name of the tag should be written.</param>
+    /// <param name="typed">Flag indicating if the type prefix should be written.</param>
     /// <returns>The number of bytes written.</returns>
-    /// <remarks>Implementors must <b>not</b> write the type prefix.</remarks>
-    protected abstract int WriteFloat(FloatTag tag, bool named);
+    protected abstract int WriteFloat(FloatTag tag, bool named, bool typed);
     
     /// <summary>
     /// Serializes a <see cref="DoubleTag"/> payload to the underlying stream.
     /// </summary>
     /// <param name="tag">The tag instance to write.</param>
     /// <param name="named">Flag indicating if the name of the tag should be written.</param>
+    /// <param name="typed">Flag indicating if the type prefix should be written.</param>
     /// <returns>The number of bytes written.</returns>
-    /// <remarks>Implementors must <b>not</b> write the type prefix.</remarks>
-    protected abstract int WriteDouble(DoubleTag tag, bool named);
+    protected abstract int WriteDouble(DoubleTag tag, bool named, bool typed);
     
     /// <summary>
     /// Serializes a <see cref="StringTag"/> payload to the underlying stream.
     /// </summary>
     /// <param name="tag">The tag instance to write.</param>
     /// <param name="named">Flag indicating if the name of the tag should be written.</param>
+    /// <param name="typed">Flag indicating if the type prefix should be written.</param>
     /// <returns>The number of bytes written.</returns>
-    /// <remarks>Implementors must <b>not</b> write the type prefix.</remarks>
-    protected abstract int WriteString(StringTag tag, bool named);
+    protected abstract int WriteString(StringTag tag, bool named, bool typed);
     
     /// <summary>
     /// Serializes a <see cref="ByteArrayTag"/> payload to the underlying stream.
     /// </summary>
     /// <param name="tag">The tag instance to write.</param>
     /// <param name="named">Flag indicating if the name of the tag should be written.</param>
+    /// <param name="typed">Flag indicating if the type prefix should be written.</param>
     /// <returns>The number of bytes written.</returns>
-    /// <remarks>Implementors must <b>not</b> write the type prefix.</remarks>
-    protected abstract int WriteByteArray(ByteArrayTag tag, bool named);
+    protected abstract int WriteByteArray(ByteArrayTag tag, bool named, bool typed);
 
     /// <summary>
     /// Serializes a <see cref="IntArrayTag"/> payload to the underlying stream.
     /// </summary>
     /// <param name="tag">The tag instance to write.</param>
     /// <param name="named">Flag indicating if the name of the tag should be written.</param>
+    /// <param name="typed">Flag indicating if the type prefix should be written.</param>
     /// <returns>The number of bytes written.</returns>
-    /// <remarks>Implementors must <b>not</b> write the type prefix.</remarks>
-    protected abstract int WriteIntArray(IntArrayTag tag, bool named);
+    protected abstract int WriteIntArray(IntArrayTag tag, bool named, bool typed);
 
     /// <summary>
     /// Serializes a <see cref="LongArrayTag"/> payload to the underlying stream.
     /// </summary>
     /// <param name="tag">The tag instance to write.</param>
     /// <param name="named">Flag indicating if the name of the tag should be written.</param>
+    /// <param name="typed">Flag indicating if the type prefix should be written.</param>
     /// <returns>The number of bytes written.</returns>
-    /// <remarks>Implementors must <b>not</b> write the type prefix.</remarks>
-    protected abstract int WriteLongArray(LongArrayTag tag, bool named);
+    protected abstract int WriteLongArray(LongArrayTag tag, bool named, bool typed);
 
     /// <summary>
-    /// Serializes a <see cref="ListTag"/> payload to the underlying stream.
+    /// Serializes a <see cref="IListTag"/> payload to the underlying stream.
     /// </summary>
     /// <param name="tag">The tag instance to write.</param>
     /// <param name="named">Flag indicating if the name of the tag should be written.</param>
+    /// <param name="typed">Flag indicating if the type prefix should be written.</param>
     /// <returns>The number of bytes written.</returns>
-    /// <remarks>Implementors must <b>not</b> write the type prefix.</remarks>
-    protected abstract int WriteList(ListTag tag, bool named);
+    protected abstract int WriteList(IListTag tag, bool named, bool typed);
 
     /// <summary>
     /// Serializes a <see cref="CompoundTag"/> payload to the underlying stream.
     /// </summary>
     /// <param name="tag">The tag instance to write.</param>
     /// <param name="named">Flag indicating if the name of the tag should be written.</param>
+    /// <param name="typed">Flag indicating if the type prefix should be written.</param>
     /// <returns>The number of bytes written.</returns>
-    /// <remarks>Implementors must <b>not</b> write the type prefix.</remarks>
-    protected abstract int WriteCompound(CompoundTag tag, bool named);
+    protected abstract int WriteCompound(CompoundTag tag, bool named, bool typed);
 
     private TagWriteHandler? writeHandler;
 }

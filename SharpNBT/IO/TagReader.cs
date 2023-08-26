@@ -144,7 +144,7 @@ public abstract class TagReader
     /// <exception cref="InvalidOperationException">The tag is not of the type specified by <typeparamref name="TTag"/>.</exception>
     public TTag Read<TTag>(bool named = true) where TTag : Tag, ITag
     {
-        var tag = Read(named, TTag.Type);
+        var tag = Read(named);
         if (tag is TTag value)
             return value;
         
@@ -323,11 +323,11 @@ public abstract class TagReader
     /// </summary>
     /// <param name="named">
     /// Flag indicating if this tag is named, only <see langowrd="false"/> when a tag is a direct child of a
-    /// <see cref="ListTag"/>.
+    /// <see cref="IListTag"/>.
     /// </param>
     /// <remarks>It is assumed that the stream is positioned at the beginning of the tag payload.</remarks>
-    /// <returns>The deserialized <see cref="ListTag"/> instance.</returns>
-    protected abstract ListTag ReadList(bool named);
+    /// <returns>The deserialized <see cref="IListTag"/> instance.</returns>
+    protected abstract IListTag ReadList(bool named);
     
     /// <summary>
     /// Reads a <see cref="CompoundTag"/> from the stream.

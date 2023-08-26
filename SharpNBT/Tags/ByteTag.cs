@@ -14,7 +14,7 @@ namespace SharpNBT;
 /// <see cref="SignedValue"/> property.
 /// </remarks>
 [PublicAPI]
-public class ByteTag : NumericTag<byte>, ITag
+public class ByteTag : NumericTag<byte>, IValueTag<byte>
 {
     /// <inheritdoc />
     static TagType ITag.Type => TagType.Byte;
