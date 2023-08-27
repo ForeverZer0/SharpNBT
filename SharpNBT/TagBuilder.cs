@@ -16,7 +16,7 @@ namespace SharpNBT;
 public class TagBuilder
 {
     private readonly CompoundTag root;
-    private readonly Stack<TagContainer> tree;
+    private readonly Stack<ICollection<Tag>> tree;
 
     /// <summary>
     /// Gets the zero-based depth of the current node, indicating how deeply nested it is within other tags.
@@ -32,7 +32,7 @@ public class TagBuilder
     public TagBuilder(string? name = null)
     {
         root = new CompoundTag(name);
-        tree = new Stack<TagContainer>();
+        tree = new Stack<ICollection<Tag>>();
         tree.Push(root);
     }
 
@@ -426,9 +426,9 @@ public class TagBuilder
         /// <summary>
         /// Gets the top-level tag for this context.
         /// </summary>
-        public TagContainer Tag { get; }
+        public ICollection<Tag> Tag { get; }
 
-        internal Context(TagContainer tag, CloseHandler handler)
+        internal Context(ICollection<Tag> tag, CloseHandler handler)
         {
             Tag = tag;
             closeHandler = handler;
