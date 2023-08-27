@@ -16,15 +16,7 @@ A CLS-compliant implementation of the Named Binary Tag (NBT) specifications (Jav
 * **Ease-of-use:** An intuitive API design, following the style and conventions of the .NET runtime, with full Intellisense for every member: Spend more time being productive and less time digging through documentation.
 * **Performance:**  Leverages the power of modern C# language features, including `Span` with `stackalloc`, `MemoryMarshal`, etc. This allows for a type-safe way to reinterpret raw buffers without pointers or making unnecessary copies of buffers, a common pitfall with serialization in type-safe languages.
 * **Concurrency:** Includes standard async/await concurrency patterns for reading and writing.
-* **Cross-platform and cross-language support:** Fully CLR compliant and build against .NET Standard 2.1, allowing support for any CLR language (i.e. C#, Visual Basic, F#, etc.) for the following runtime versions or greater:
-    * .NET Standard 2.1
-    * .NET 5.0
-    * .NET Core 3.0
-    * Mono 6.4
-    * Xamarin.iOS 12.16
-    * Xamarin.Mac 5.16
-    * Xamarin.Android 10.0
-    * Unity 2021.2.0b6
+* **Cross-language support:** Fully CLR compliant and build against .NET 7.0, allowing support for any CLR language (i.e. C#, Visual Basic, F#, etc.) with the supported runtime version.
 * **Callbacks:** Can subscribe to events that get a callback as the parser steps through a stream to get immediate feedback without waiting for document completion. This allows subscribers to even parse the payload themselves and handle the event entirely.
 * **String NBT**: Supports both generating and parsing arbitrary SNBT strings.
 
