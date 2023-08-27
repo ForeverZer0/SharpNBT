@@ -1,5 +1,5 @@
 using System;
-using System.Runtime.Serialization;
+using System.Text.Json;
 using JetBrains.Annotations;
 
 namespace SharpNBT;
@@ -11,7 +11,7 @@ namespace SharpNBT;
 /// This tag type does not exist in the NBT specification, and is included for convenience to differentiate it from the <see cref="ByteTag"/> that it is
 /// actually serialized as.
 /// </remarks>
-[PublicAPI][Serializable]
+[PublicAPI]
 [Obsolete("Use the IsBool and Bool properties of ByteTag. This class will be removed in a future version.")]
 public class BoolTag : Tag
 {
@@ -26,16 +26,20 @@ public class BoolTag : Tag
     {
         Value = value;
     }
-
-    /// <summary>
-    /// Required constructor for ISerializable implementation.
-    /// </summary>
-    /// <param name="info">The <see cref="T:System.Runtime.Serialization.SerializationInfo" /> to describing this instance.</param>
-    /// <param name="context">The destination (see <see cref="T:System.Runtime.Serialization.StreamingContext" />) for this serialization.</param>
-    protected BoolTag(SerializationInfo info, StreamingContext context) : base(info, context)
+ 
+    /// <inheritdoc />
+    protected internal override void WriteJson(Utf8JsonWriter writer, bool named = true)
     {
+        if (named && Name != null)
+        {
+            writer.WriteBoolean(Name, Value);
+        }
+        else
+        {
+            writer.WriteBooleanValue(Value);
+        }
     }
-        
+    
     /// <inheritdoc cref="object.ToString"/>
     public override string ToString() => $"TAG_Byte({PrettyName}): {(Value ? "true" : "false")}";
         

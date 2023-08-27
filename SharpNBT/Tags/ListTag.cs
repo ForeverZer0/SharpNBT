@@ -2,8 +2,8 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
-using System.Runtime.Serialization;
 using System.Text;
+using System.Text.Json;
 using JetBrains.Annotations;
 
 namespace SharpNBT;
@@ -14,7 +14,7 @@ namespace SharpNBT;
 /// <remarks>
 /// All child tags <b>must</b> be have the same <see cref="Tag.Type"/> value, and their <see cref="Tag.Name"/> value will be omitted during serialization.
 /// </remarks>
-[PublicAPI][Serializable]
+[PublicAPI]
 public class ListTag : Tag, IList<Tag>
 {
     /// <summary>
@@ -55,28 +55,6 @@ public class ListTag : Tag, IList<Tag>
     {
         foreach (var item in children)
             list.Add(AssertType(item));
-    }
-        
-    /// <summary>
-    /// Required constructor for ISerializable implementation.
-    /// </summary>
-    /// <param name="info">The <see cref="T:System.Runtime.Serialization.SerializationInfo" /> to describing this instance.</param>
-    /// <param name="context">The destination (see <see cref="T:System.Runtime.Serialization.StreamingContext" />) for this serialization.</param>
-    protected ListTag(SerializationInfo info, StreamingContext context) : base(info, context)
-    {
-        ChildType = (TagType)info.GetByte("child_type");
-        var count = info.GetInt32("count");
-        list = new List<Tag>(count);
-        if (info.GetValue("values", typeof(Tag[])) is Tag[] ary)
-            AddRange(ary);
-    }
-
-    public override void GetObjectData(SerializationInfo info, StreamingContext context)
-    {
-        base.GetObjectData(info, context);
-        info.AddValue("child_type", (byte) ChildType);
-        info.AddValue("count", list.Count);
-        info.AddValue("values", list.ToArray());
     }
 
     /// <inheritdoc />
@@ -128,24 +106,22 @@ public class ListTag : Tag, IList<Tag>
         set => list[index] = AssertType(value);
     }
     
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
+    /// <inheritdoc />
+    protected internal override void WriteJson(Utf8JsonWriter writer, bool named = true)
+    {
+        if (named && Name != null)
+        {
+            writer.WriteStartArray(Name);
+        }
+        else
+        {
+            writer.WriteStartArray();
+        }
+        
+        for (var i = 0; i < Count; i++)
+            list[i].WriteJson(writer, false);
+        writer.WriteEndArray();
+    }
     
     /// <inheritdoc cref="object.ToString"/>
     public override string ToString()
@@ -153,9 +129,7 @@ public class ListTag : Tag, IList<Tag>
         var word = Count == 1 ? Strings.WordEntry : Strings.WordEntries;
         return $"TAG_List({PrettyName}): [{Count} {word}]";
     }
-
-
-
+    
     /// <inheritdoc cref="Tag.PrettyPrinted(StringBuilder,int,string)"/>
     protected internal override void PrettyPrinted(StringBuilder buffer, int level, string indent)
     {

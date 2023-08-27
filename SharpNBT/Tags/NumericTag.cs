@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Numerics;
-using System.Runtime.Serialization;
+using System.Text.Json;
 using JetBrains.Annotations;
 
 namespace SharpNBT;
@@ -10,7 +10,7 @@ namespace SharpNBT;
 /// Abstract base class for <see cref="Tag"/> types that contain a single numeric value.
 /// </summary>
 /// <typeparam name="T">A value type that implements <see cref="INumber{TSelf}"/>.</typeparam>
-[PublicAPI][Serializable]
+[PublicAPI]
 public abstract class NumericTag<T> : Tag, IEquatable<NumericTag<T>>, IComparable<NumericTag<T>>, IComparable where T : unmanaged, INumber<T>
 {
     /// <summary>
@@ -23,21 +23,7 @@ public abstract class NumericTag<T> : Tag, IEquatable<NumericTag<T>>, IComparabl
     {
         Value = value;
     }
-
-    /// <inheritdoc />
-    protected NumericTag(SerializationInfo info, StreamingContext context) : base(info, context)
-    {
-        var value = info.GetValue("value", typeof(T));
-        Value = value is null ? default : (T)value;
-    }
     
-    /// <inheritdoc />
-    public override void GetObjectData(SerializationInfo info, StreamingContext context)
-    {
-        base.GetObjectData(info, context);
-        info.AddValue("value", Value, typeof(T));
-    }
-
     /// <inheritdoc />
     public bool Equals(NumericTag<T>? other)
     {

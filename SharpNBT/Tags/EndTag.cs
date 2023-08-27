@@ -1,4 +1,5 @@
 using System.Text;
+using System.Text.Json;
 using JetBrains.Annotations;
 
 namespace SharpNBT;
@@ -15,7 +16,13 @@ public sealed class EndTag : Tag
     public EndTag() : base(TagType.End, null)
     {
     }
-        
+     
+    /// <inheritdoc />
+    protected internal override void WriteJson(Utf8JsonWriter writer, bool named = true)
+    {
+        // Do nothing
+    }
+    
     /// <inheritdoc cref="object.ToString"/>
     public override string ToString() => $"TAG_End";
 

@@ -1,5 +1,5 @@
 using System;
-using System.Runtime.Serialization;
+using System.Text.Json;
 using JetBrains.Annotations;
 
 namespace SharpNBT;
@@ -86,21 +86,28 @@ public class ByteTag : NumericTag<byte>
     public ByteTag(string? name, sbyte value) : base(TagType.Byte, name, unchecked((byte) value))
     {
     }
-        
-    /// <summary>
-    /// Required constructor for ISerializable implementation.
-    /// </summary>
-    /// <param name="info">The <see cref="T:System.Runtime.Serialization.SerializationInfo" /> to describing this instance.</param>
-    /// <param name="context">The destination (see <see cref="T:System.Runtime.Serialization.StreamingContext" />) for this serialization.</param>
-    protected ByteTag(SerializationInfo info, StreamingContext context) : base(info, context)
-    {
-    }
 
     /// <inheritdoc cref="object.ToString"/>
     public override string ToString()
     {
         object obj = IsBool ? Bool : Value;
         return $"TAG_Byte({PrettyName}): {obj}";
+    }
+    
+    /// <inheritdoc />
+    protected internal override void WriteJson(Utf8JsonWriter writer, bool named = true)
+    {
+        if (named && Name != null)
+        {
+            if (IsBool)
+                writer.WriteBoolean(Name, Bool);
+            else
+                writer.WriteNumber(Name, Value);
+        }
+        else
+        {
+            writer.WriteNumberValue(Value);
+        }
     }
         
     /// <summary>

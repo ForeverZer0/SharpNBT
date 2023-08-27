@@ -2,8 +2,6 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Numerics;
-using System.Runtime.CompilerServices;
-using System.Runtime.Serialization;
 using System.Text;
 using JetBrains.Annotations;
 
@@ -13,7 +11,7 @@ namespace SharpNBT;
 /// Base class for NBT tags that contain a fixed-size array of numeric types.
 /// </summary>
 /// <typeparam name="T">A value type that implements <see cref="INumber{TSelf}"/>.</typeparam>
-[PublicAPI][Serializable]
+[PublicAPI]
 public abstract class ArrayTag<T> : Tag, IReadOnlyList<T> where T : unmanaged, INumber<T>
 {
     /// <summary>
@@ -33,22 +31,6 @@ public abstract class ArrayTag<T> : Tag, IReadOnlyList<T> where T : unmanaged, I
     // ReSharper restore InvalidXmlDocComment
     {
         array = value;
-    }
-
-    /// <inheritdoc />
-    protected ArrayTag(SerializationInfo info, StreamingContext context) : base(info, context)
-    {
-        var _ = info.GetInt32("count");
-        var value = info.GetValue("values", typeof(T[])) as T[];
-        array = value ?? Array.Empty<T>();
-    }
-
-    /// <inheritdoc />
-    public override void GetObjectData(SerializationInfo info, StreamingContext context)
-    {
-        base.GetObjectData(info, context);
-        info.AddValue("count", array.Length);
-        info.AddValue("values", array);
     }
 
     /// <inheritdoc />

@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.Serialization;
+using System.Text.Json;
 using JetBrains.Annotations;
 
 namespace SharpNBT;
@@ -9,7 +9,7 @@ namespace SharpNBT;
 /// <summary>
 /// A tag that whose value is a contiguous sequence of 64-bit integers.
 /// </summary>
-[PublicAPI][Serializable]
+[PublicAPI]
 public class LongArrayTag : ArrayTag<long>
 {
     /// <summary>
@@ -30,15 +30,6 @@ public class LongArrayTag : ArrayTag<long>
     }
         
     /// <summary>
-    /// Required constructor for ISerializable implementation.
-    /// </summary>
-    /// <param name="info">The <see cref="T:System.Runtime.Serialization.SerializationInfo" /> to describing this instance.</param>
-    /// <param name="context">The destination (see <see cref="T:System.Runtime.Serialization.StreamingContext" />) for this serialization.</param>
-    protected LongArrayTag(SerializationInfo info, StreamingContext context) : base(info, context)
-    {
-    }
-        
-    /// <summary>
     /// Initializes a new instance of the <see cref="LongArrayTag"/> with the specified <paramref name="values"/>.
     /// </summary>
     /// <param name="name">The name of the tag, or <see langword="null"/> if tag has no name.</param>
@@ -54,6 +45,23 @@ public class LongArrayTag : ArrayTag<long>
     /// <param name="values">A collection of values to include in this tag.</param>
     public LongArrayTag(string? name, ReadOnlySpan<long> values) : base(TagType.LongArray, name, values.ToArray())
     {
+    }
+    
+    /// <inheritdoc />
+    protected internal override void WriteJson(Utf8JsonWriter writer, bool named = true)
+    {
+        if (named && Name != null)
+        {
+            writer.WriteStartArray(Name);
+        }
+        else
+        {
+            writer.WriteStartArray();
+        }
+        
+        for (var i = 0; i < Count; i++)
+            writer.WriteNumberValue(this[i]);
+        writer.WriteEndArray();
     }
         
     /// <inheritdoc cref="object.ToString"/>

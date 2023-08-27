@@ -1,6 +1,5 @@
 using System;
-using System.Numerics;
-using System.Runtime.Serialization;
+using System.Text.Json;
 using JetBrains.Annotations;
 
 namespace SharpNBT;
@@ -8,7 +7,7 @@ namespace SharpNBT;
 /// <summary>
 /// A tag the contains a UTF-8 string.
 /// </summary>
-[PublicAPI][Serializable]
+[PublicAPI]
 public class StringTag : Tag, IEquatable<StringTag>
 {
     /// <summary>
@@ -25,18 +24,18 @@ public class StringTag : Tag, IEquatable<StringTag>
     {
         Value = value ?? string.Empty;
     }
-        
+    
     /// <inheritdoc />
-    protected StringTag(SerializationInfo info, StreamingContext context) : base(info, context)
+    protected internal override void WriteJson(Utf8JsonWriter writer, bool named = true)
     {
-        Value = info.GetString("value") ?? string.Empty;
-    }
-        
-    /// <inheritdoc />
-    public override void GetObjectData(SerializationInfo info, StreamingContext context)
-    {
-        base.GetObjectData(info, context);
-        info.AddValue("value", Value);
+        if (named && Name != null)
+        {
+            writer.WriteString(Name, Value);
+        }
+        else
+        {
+            writer.WriteStringValue(Value);
+        }
     }
     
     /// <inheritdoc cref="object.ToString"/>

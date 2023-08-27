@@ -1,11 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Runtime.Serialization;
-using System.Runtime.Serialization.Json;
 using System.Text;
-using System.Text.RegularExpressions;
+using System.Text.Json;
+using System.Threading.Tasks;
 using JetBrains.Annotations;
 
 [assembly: CLSCompliant(true)]
@@ -16,40 +15,9 @@ namespace SharpNBT;
 /// <summary>
 /// Abstract base class that all NBT tags inherit from.
 /// </summary>
-[PublicAPI][Serializable]
-public abstract class Tag : IEquatable<Tag>, ISerializable, ICloneable
+[PublicAPI]
+public abstract class Tag : IEquatable<Tag>, ICloneable
 {
-    private static Regex simpleNameMatcher;
-
-    static Tag()
-    {
-        simpleNameMatcher = new Regex(@"^[A-Ba-z0-9_-]+$", RegexOptions.Compiled);
-    }
-        
-        
-    private static IEnumerable<Type> GetKnownTypes()
-    {
-        return new[]
-        {
-            typeof(TagType),
-            typeof(NumericTag<>),
-            typeof(ArrayTag<>),
-            typeof(Tag[]),
-            typeof(ByteTag),
-            typeof(ShortTag),
-            typeof(IntTag),
-            typeof(LongTag),
-            typeof(FloatTag),
-            typeof(DoubleTag),
-            typeof(StringTag),
-            typeof(ByteArrayTag),
-            typeof(IntArrayTag),
-            typeof(LongArrayTag),
-            typeof(ListTag),
-            typeof(CompoundTag)
-        };
-    }
-        
     /// <summary>
     /// Text applied in a pretty-print sting when a tag has no defined <see cref="Name"/> value.
     /// </summary>
@@ -58,17 +26,18 @@ public abstract class Tag : IEquatable<Tag>, ISerializable, ICloneable
     /// <summary>
     /// Gets a constant describing the NBT type this object represents.
     /// </summary>
-    public TagType Type { get; private set; }
+    public TagType Type { get; }
         
     /// <summary>
     /// Gets the parent <see cref="Tag"/> this object is a child of.
     /// </summary>
+    [Obsolete("Parent property will be removed in a future version.")]
     public Tag? Parent { get; internal set; }
         
     /// <summary>
     /// Gets the name assigned to this <see cref="Tag"/>.
     /// </summary>
-    public string? Name { get; set; }
+    public string? Name { get; }
 
     /// <summary>
     /// Initialized a new instance of the <see cref="Tag"/> class.
@@ -98,77 +67,115 @@ public abstract class Tag : IEquatable<Tag>, ISerializable, ICloneable
     /// Gets the name of the object as a human-readable quoted string, or a default name to indicate it has no name when applicable.
     /// </summary>
     protected internal string PrettyName => Name is null ? "None" : $"\"{Name}\"";
+    
+    /// <summary>
+    /// Uses the provided <paramref name="writer"/> to write the NBT tag in JSON format.
+    /// </summary>
+    /// <param name="writer">A JSON writer instance.</param>
+    /// <param name="named">
+    /// Flag indicating if this object's name should be written as a property name, or <see langword="false"/> when it
+    /// is a child of <see cref="ListTag"/>, in which case it should be written as a JSON array element.
+    /// </param>
+    protected internal abstract void WriteJson(Utf8JsonWriter writer, bool named = true);
+    
+    /// <summary>
+    /// Writes the tag to the specified <paramref name="stream"/> in JSON format.
+    /// </summary>
+    /// <param name="stream">The stream instance to write to.</param>
+    /// <param name="options">Options that will be passed to the JSON writer.</param>
+    /// <exception cref="IOException">The stream is no opened for writing.</exception>
+    public void WriteJson(Stream stream, JsonWriterOptions? options = null)
+    {
+        using var json = new Utf8JsonWriter(stream, options ?? new JsonWriterOptions());
         
+        if (string.IsNullOrEmpty(Name))
+        {
+            json.WriteStartArray();
+            WriteJson(json, false);
+            json.WriteEndArray();
+        }
+        else
+        {
+            json.WriteStartObject();
+            WriteJson(json, true);
+            json.WriteEndObject();
+        }
+        
+        json.Flush();
+    }
+    
+    /// <summary>
+    /// Asynchronously writes the tag to the specified <paramref name="stream"/> in JSON format.
+    /// </summary>
+    /// <param name="stream">The stream instance to write to.</param>
+    /// <param name="options">Options that will be passed to the JSON writer.</param>
+    /// <exception cref="IOException">The stream is no opened for writing.</exception>
+    public async Task WriteJsonAsync(Stream stream, JsonWriterOptions? options = null)
+    {
+        await using var json = new Utf8JsonWriter(stream, options ?? new JsonWriterOptions());
+        
+        if (string.IsNullOrEmpty(Name))
+        {
+            json.WriteStartArray();
+            WriteJson(json, false);
+            json.WriteEndArray();
+        }
+        else
+        {
+            json.WriteStartObject();
+            WriteJson(json, true);
+            json.WriteEndObject();
+        }
+        
+        await json.FlushAsync();
+    }
+
+    /// <summary>
+    /// Converts the NBT to an equivalent JSON representation, and returns it as a string.
+    /// </summary>
+    /// <param name="options">Options that will be passed to the JSON writer.</param>
+    /// <returns>The JSON-encoded string representing describing the tag.</returns>
+    public string ToJson(JsonWriterOptions? options = null)
+    {
+        using var stream = new MemoryStream();
+        WriteJson(stream, options);
+        stream.Flush();
+        return Encoding.UTF8.GetString(stream.ToArray());
+    }
+    
     /// <summary>
     /// Gets a representation of this <see cref="Tag"/> as a JSON string.
     /// </summary>
     /// <param name="pretty">Flag indicating if formatting should be applied to make the string human-readable.</param>
-    /// <param name="indent">When <paramref name="pretty"/> is <see lawnword="true"/>, indicates the indent characters(s) to use.</param>
+    /// <param name="indent">Ignored</param>
     /// <returns>A JSON string describing this object.</returns>
+    [Obsolete("Use WriteJson and ToJson instead.")]
     public string ToJsonString(bool pretty = false, string indent = "    ")
     {
-        var settings = new DataContractJsonSerializerSettings
-        {
-            UseSimpleDictionaryFormat = true,
-            EmitTypeInformation = EmitTypeInformation.Never,
-            KnownTypes = GetKnownTypes()
-        };
-        var serializer = new DataContractJsonSerializer(typeof(Tag), settings);
-        using var stream = new MemoryStream();
-        if (pretty)
-        {
-            using var writer = JsonReaderWriterFactory.CreateJsonWriter(stream, Encoding.UTF8, false, true, indent);
-            serializer.WriteObject(writer, this);
-            writer.Flush();
-        }
-        else
-        {
-            serializer.WriteObject(stream, this);
-        }
-        stream.Flush();
-        return Encoding.UTF8.GetString(stream.ToArray());
+        var options = new JsonWriterOptions { Indented = pretty };
+        return ToJson(options);
     }
 
-    /// <summary>Indicates whether the current object is equal to another object of the same type.</summary>
-    /// <param name="other">An object to compare with this object.</param>
-    /// <returns>
-    /// <see langword="true" /> if the current object is equal to the <paramref name="other" /> parameter; otherwise, <see langword="false" />.</returns>
-    /// <footer><a href="https://docs.microsoft.com/en-us/dotnet/api/System.IEquatable-1.Equals?view=netstandard-2.1">`IEquatable.Equals` on docs.microsoft.com</a></footer>
+    /// <inheritdoc />
     public bool Equals(Tag? other)
     {
         if (ReferenceEquals(null, other)) return false;
         if (ReferenceEquals(this, other)) return true;
-        return Type == other.Type && Name == other.Name;
+        return Type == other.Type && string.CompareOrdinal(Name, other.Name) == 0;
     }
 
-    /// <summary>Determines whether the specified object is equal to the current object.</summary>
-    /// <param name="obj">The object to compare with the current object.</param>
-    /// <returns>
-    /// <see langword="true" /> if the specified object  is equal to the current object; otherwise, <see langword="false" />.</returns>
-    /// <footer><a href="https://docs.microsoft.com/en-us/dotnet/api/System.Object.Equals?view=netstandard-2.1">`Object.Equals` on docs.microsoft.com</a></footer>
+    /// <inheritdoc />
     public override bool Equals(object? obj)
     {
         if (ReferenceEquals(null, obj)) return false;
         if (ReferenceEquals(this, obj)) return true;
-        if (obj.GetType() != this.GetType()) return false;
-        return Equals((Tag)obj);
+        return obj.GetType() == GetType() && Equals((Tag)obj);
     }
 
-    /// <summary>Serves as the default hash function.</summary>
-    /// <returns>A hash code for the current object.</returns>
-    /// <footer><a href="https://docs.microsoft.com/en-us/dotnet/api/System.Object.GetHashCode?view=netstandard-2.1">`Object.GetHashCode` on docs.microsoft.com</a></footer>
-    public override int GetHashCode()
-    {
-        unchecked
-        {
-            // ReSharper disable NonReadonlyMemberInGetHashCode
-            return ((int)Type * 373) ^ (Name != null ? Name.GetHashCode() : 0);
-            // ReSharper restore NonReadonlyMemberInGetHashCode
-        }
-    }
-
-    /// <summary>Creates a new object that is a copy of the current instance.</summary>
-    /// <returns>A new object that is a copy of this instance.</returns>
+    /// <inheritdoc />
+    public override int GetHashCode() => HashCode.Combine((int)Type, Name);
+    
+    /// <inheritdoc />
     public object Clone()
     {
         // Serialize then deserialize to make a deep-copy
@@ -182,28 +189,7 @@ public abstract class Tag : IEquatable<Tag>, ISerializable, ICloneable
         writer.WriteTag(this);
         stream.Seek(0, SeekOrigin.Begin);
             
-        return reader.ReadTag(!(Parent is ListTag));
-    }
-
-    /// <summary>
-    /// Required constructor for ISerializable implementation.
-    /// </summary>
-    /// <param name="info">The <see cref="T:System.Runtime.Serialization.SerializationInfo" /> to describing this instance.</param>
-    /// <param name="context">The destination (see <see cref="T:System.Runtime.Serialization.StreamingContext" />) for this serialization.</param>
-    protected Tag(SerializationInfo info, StreamingContext context)
-    {
-        Type = (TagType) info.GetByte("type");
-        Name = info.GetString("name");
-    }
-
-    /// <summary>Populates a <see cref="T:System.Runtime.Serialization.SerializationInfo" /> with the data needed to serialize the target object.</summary>
-    /// <param name="info">The <see cref="T:System.Runtime.Serialization.SerializationInfo" /> to populate with data.</param>
-    /// <param name="context">The destination (see <see cref="T:System.Runtime.Serialization.StreamingContext" />) for this serialization.</param>
-    /// <exception cref="T:System.Security.SecurityException">The caller does not have the required permission.</exception>
-    public virtual void GetObjectData(SerializationInfo info, StreamingContext context)
-    {
-        info.AddValue("type", (byte) Type);
-        info.AddValue("name", Name);
+        return reader.ReadTag(!string.IsNullOrWhiteSpace(Name));
     }
 
     /// <summary>
@@ -238,7 +224,7 @@ public abstract class Tag : IEquatable<Tag>, ISerializable, ICloneable
         {
             if (string.IsNullOrEmpty(Name))
                 return string.Empty;
-            return simpleNameMatcher.IsMatch(Name) ? Name : $"\"{Name}\"";
+            return Name.All(c => c.IsValidUnquoted()) ? Name : $"\"{Name}\"";
         }
     }
 }

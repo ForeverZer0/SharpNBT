@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.Serialization;
+using System.Text.Json;
 using JetBrains.Annotations;
 
 namespace SharpNBT;
@@ -13,7 +13,7 @@ namespace SharpNBT;
 /// While this class uses the CLS compliant <see cref="byte"/> (0..255), the NBT specification uses a signed value with a range of -128..127, so ensure
 /// the bits are equivalent for your values.
 /// </remarks>
-[PublicAPI][Serializable]
+[PublicAPI]
 public class ByteArrayTag : ArrayTag<byte>
 {
     /// <summary>
@@ -51,16 +51,24 @@ public class ByteArrayTag : ArrayTag<byte>
     public ByteArrayTag(string? name, ReadOnlySpan<byte> values) : base(TagType.ByteArray, name, values.ToArray())
     {
     }
-        
-    /// <summary>
-    /// Required constructor for ISerializable implementation.
-    /// </summary>
-    /// <param name="info">The <see cref="T:System.Runtime.Serialization.SerializationInfo" /> to describing this instance.</param>
-    /// <param name="context">The destination (see <see cref="T:System.Runtime.Serialization.StreamingContext" />) for this serialization.</param>
-    protected ByteArrayTag(SerializationInfo info, StreamingContext context) : base(info, context)
+    
+    /// <inheritdoc />
+    protected internal override void WriteJson(Utf8JsonWriter writer, bool named = true)
     {
+        if (named && Name != null)
+        {
+            writer.WriteStartArray(Name);
+        }
+        else
+        {
+            writer.WriteStartArray();
+        }
+        
+        for (var i = 0; i < Count; i++)
+            writer.WriteNumberValue(this[i]);
+        writer.WriteEndArray();
     }
-
+    
     /// <inheritdoc cref="object.ToString"/>
     public override string ToString()
     {

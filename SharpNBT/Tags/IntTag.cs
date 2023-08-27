@@ -1,5 +1,5 @@
 using System;
-using System.Runtime.Serialization;
+using System.Text.Json;
 using JetBrains.Annotations;
 
 namespace SharpNBT;
@@ -7,7 +7,7 @@ namespace SharpNBT;
 /// <summary>
 /// A tag that contains a single 32-bit integer value.
 /// </summary>
-[PublicAPI][Serializable]
+[PublicAPI]
 public class IntTag : NumericTag<int>
 {
     /// <summary>
@@ -37,14 +37,18 @@ public class IntTag : NumericTag<int>
     public IntTag(Tag? parent, string? name, uint value) : base(TagType.Int, name, unchecked((int) value))
     {
     }
-        
-    /// <summary>
-    /// Required constructor for ISerializable implementation.
-    /// </summary>
-    /// <param name="info">The <see cref="T:System.Runtime.Serialization.SerializationInfo" /> to describing this instance.</param>
-    /// <param name="context">The destination (see <see cref="T:System.Runtime.Serialization.StreamingContext" />) for this serialization.</param>
-    protected IntTag(SerializationInfo info, StreamingContext context) : base(info, context)
+    
+    /// <inheritdoc />
+    protected internal override void WriteJson(Utf8JsonWriter writer, bool named = true)
     {
+        if (named && Name != null)
+        {
+            writer.WriteNumber(Name, Value);
+        }
+        else
+        {
+            writer.WriteNumberValue(Value);
+        }
     }
         
     /// <inheritdoc cref="object.ToString"/>

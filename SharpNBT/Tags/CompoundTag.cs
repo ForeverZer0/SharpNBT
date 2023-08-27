@@ -3,8 +3,8 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Runtime.Serialization;
 using System.Text;
+using System.Text.Json;
 using JetBrains.Annotations;
 
 namespace SharpNBT;
@@ -16,7 +16,7 @@ namespace SharpNBT;
 /// This along with the <see cref="ListTag"/> class define the structure of the NBT format. Children are not order-dependent, nor is order guaranteed. The
 /// closing <see cref="EndTag"/> does not require to be explicitly added, it will be added automatically during serialization. 
 /// </remarks>
-[PublicAPI][Serializable]
+[PublicAPI]
 public class CompoundTag : Tag, IDictionary<string, Tag>, ICollection<Tag>
 {
     private readonly Dictionary<string, Tag> dict;
@@ -42,25 +42,7 @@ public class CompoundTag : Tag, IDictionary<string, Tag>, ICollection<Tag>
             dict.Add(value.Name!, AssertName(value));
         }
     }
-        
-    /// <summary>
-    /// Required constructor for ISerializable implementation.
-    /// </summary>
-    /// <param name="info">The <see cref="T:System.Runtime.Serialization.SerializationInfo" /> to describing this instance.</param>
-    /// <param name="context">The destination (see <see cref="T:System.Runtime.Serialization.StreamingContext" />) for this serialization.</param>
-    protected CompoundTag(SerializationInfo info, StreamingContext context) : base(info, context)
-    {
-        var result = info.GetValue("children", typeof(Dictionary<string, Tag>)) as Dictionary<string, Tag>;
-        dict = result ?? new Dictionary<string, Tag>();
-    }
-
-    /// <inheritdoc />
-    public override void GetObjectData(SerializationInfo info, StreamingContext context)
-    {
-        base.GetObjectData(info, context);
-        info.AddValue("children", dict);
-    }
-
+    
     /// <inheritdoc />
     void ICollection<KeyValuePair<string, Tag>>.Add(KeyValuePair<string, Tag> item) => dict.Add(item.Key, item.Value);
 
@@ -157,6 +139,23 @@ public class CompoundTag : Tag, IDictionary<string, Tag>, ICollection<Tag>
         return (TTag)dict[name];
     }
     
+    /// <inheritdoc />
+    protected internal override void WriteJson(Utf8JsonWriter writer, bool named = true)
+    {
+        if (named && Name != null)
+        {
+            writer.WriteStartObject(Name);
+        }
+        else
+        {
+            writer.WriteStartObject();
+        }
+
+        foreach (var child in dict.Values)
+            child.WriteJson(writer, true);
+        writer.WriteEndObject();
+    }
+    
     /// <summary>Returns a string that represents the current object.</summary>
     /// <returns>A string that represents the current object.</returns>
     /// <footer><a href="https://docs.microsoft.com/en-us/dotnet/api/System.Object.ToString?view=netcore-5.0">`Object.ToString` on docs.microsoft.com</a></footer>
@@ -184,18 +183,18 @@ public class CompoundTag : Tag, IDictionary<string, Tag>, ICollection<Tag>
     /// <param name="name">The name of the tag to search for.</param>
     /// <param name="recursive"><see langword="true"/> to recursively search children, otherwise <see langword="false"/> to only search direct descendants.</param>
     /// <returns>The first tag found with <paramref name="name"/>, otherwise <see langword="null"/> if none was found.</returns>
-    public Tag? Find(string name, bool recursive = false)
+    public TTag? Find<TTag>(string name, bool recursive = false) where TTag : Tag
     {
-        foreach (var tag in dict.Values)
+        foreach (var (key, value) in dict)
         {
-            if (string.CompareOrdinal(name, tag.Name) == 0)
-                return tag;
+            if (string.CompareOrdinal(name, key) == 0 && value is TTag result)
+                return result;
 
-            if (recursive && tag is CompoundTag child)
+            if (recursive && value is CompoundTag child)
             {
-                var result = child.Find(name, true);
-                if (result != null)
-                    return result;
+                var nested = child.Find<TTag>(name, recursive);
+                if (nested != null)
+                    return nested;
             }
         }
 

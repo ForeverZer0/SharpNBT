@@ -1,5 +1,4 @@
-using System;
-using System.Runtime.Serialization;
+using System.Text.Json;
 using JetBrains.Annotations;
 
 namespace SharpNBT;
@@ -7,7 +6,7 @@ namespace SharpNBT;
 /// <summary>
 /// A tag that contains a single IEEE-754 single-precision floating point number.
 /// </summary>
-[PublicAPI][Serializable]
+[PublicAPI]
 public class FloatTag : NumericTag<float>
 {
     /// <summary>
@@ -18,13 +17,18 @@ public class FloatTag : NumericTag<float>
     public FloatTag(string? name, float value) : base(TagType.Float, name, value)
     {
     }
-    /// <summary>
-    /// Required constructor for ISerializable implementation.
-    /// </summary>
-    /// <param name="info">The <see cref="T:System.Runtime.Serialization.SerializationInfo" /> to describing this instance.</param>
-    /// <param name="context">The destination (see <see cref="T:System.Runtime.Serialization.StreamingContext" />) for this serialization.</param>
-    protected FloatTag(SerializationInfo info, StreamingContext context) : base(info, context)
+    
+    /// <inheritdoc />
+    protected internal override void WriteJson(Utf8JsonWriter writer, bool named = true)
     {
+        if (named && Name != null)
+        {
+            writer.WriteNumber(Name, Value);
+        }
+        else
+        {
+            writer.WriteNumberValue(Value);
+        }
     }
         
     /// <inheritdoc cref="object.ToString"/>

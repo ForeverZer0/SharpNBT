@@ -1,5 +1,5 @@
 using System;
-using System.Runtime.Serialization;
+using System.Text.Json;
 using JetBrains.Annotations;
 
 namespace SharpNBT;
@@ -7,7 +7,7 @@ namespace SharpNBT;
 /// <summary>
 /// A tag that contains a single 16-bit integer value.
 /// </summary>
-[PublicAPI][Serializable]
+[PublicAPI]
 public class ShortTag : NumericTag<short>
 {
     /// <summary>
@@ -43,14 +43,18 @@ public class ShortTag : NumericTag<short>
     public ShortTag(string? name, ushort value) : base(TagType.Short, name, unchecked((short) value))
     {
     }
-        
-    /// <summary>
-    /// Required constructor for ISerializable implementation.
-    /// </summary>
-    /// <param name="info">The <see cref="T:System.Runtime.Serialization.SerializationInfo" /> to describing this instance.</param>
-    /// <param name="context">The destination (see <see cref="T:System.Runtime.Serialization.StreamingContext" />) for this serialization.</param>
-    protected ShortTag(SerializationInfo info, StreamingContext context) : base(info, context)
+    
+    /// <inheritdoc />
+    protected internal override void WriteJson(Utf8JsonWriter writer, bool named = true)
     {
+        if (named && Name != null)
+        {
+            writer.WriteNumber(Name, Value);
+        }
+        else
+        {
+            writer.WriteNumberValue(Value);
+        }
     }
         
     /// <inheritdoc cref="object.ToString"/>
