@@ -12,6 +12,7 @@ namespace SharpNBT;
 /// actually serialized as.
 /// </remarks>
 [PublicAPI][Serializable]
+[Obsolete("Use the IsBool and Bool properties of ByteTag. This class will be removed in a future release.")]
 public class BoolTag : Tag<bool>
 {
     private const string TRUE = "true";

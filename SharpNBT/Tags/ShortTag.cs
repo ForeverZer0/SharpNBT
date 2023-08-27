@@ -31,6 +31,12 @@ public class ShortTag : Tag<short>
     public ShortTag(string? name, short value) : base(TagType.Short, name, value)
     {
     }
+    
+    /// <inheritdoc cref="ByteTag(string,byte)"/>
+    /// <remarks>The use of <see cref="int"/> is for convenience only.</remarks>
+    public ShortTag(string? name, int value) : base(TagType.Short, name, unchecked((byte) (value & 0xFFFF)))
+    {
+    }
         
     /// <inheritdoc cref="ShortTag(string,short)"/>
     [CLSCompliant(false)]
