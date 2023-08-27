@@ -8,7 +8,7 @@ namespace SharpNBT;
 /// Contains extension methods dealing with endianness of numeric types.
 /// </summary>
 [PublicAPI]
-public static class EndianExtensions
+public static class NumberExtensions
 {
     /// <summary>
     /// Swap the endian of the given <paramref name="value"/>.
@@ -70,5 +70,14 @@ public static class EndianExtensions
     {
         var n = BitConverter.DoubleToInt64Bits(value);
         return BitConverter.Int64BitsToDouble(n.SwapEndian());
+    }
+
+    public static bool IsValidUnquoted(this char c)
+    {
+        return c == '_' || c == '-' ||
+               c == '.' || c == '+' ||
+               c >= '0' && c <= '9' ||
+               c >= 'A' && c <= 'Z' ||
+               c >= 'a' && c <= 'z';
     }
 }

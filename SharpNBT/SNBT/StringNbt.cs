@@ -175,7 +175,7 @@ public static class StringNbt
         var start = scanner.Position;
         for (var length = 0; scanner.MoveNext(false, true); length++)
         {
-            if (AllowedInUnquoted(scanner.Current))
+            if (scanner.Current.IsValidUnquoted())
                 continue;
 
             // Step back one character so not to consume the one that failed the permission check.
@@ -363,15 +363,6 @@ public static class StringNbt
             values[i] = T.Parse(strings[i], NumberStyles.Integer, NumberFormatInfo.InvariantInfo);
         
         return values;
-    }
-    
-    private static bool AllowedInUnquoted(char c)
-    {
-        return c == '_' || c == '-' ||
-               c == '.' || c == '+' ||
-               c >= '0' && c <= '9' ||
-               c >= 'A' && c <= 'Z' ||
-               c >= 'a' && c <= 'z';
     }
     
     private const StringSplitOptions SplitOpts = StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries;
