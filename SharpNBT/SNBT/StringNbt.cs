@@ -24,13 +24,54 @@ public static class StringNbt
     public static CompoundTag Parse(string source)
     {
         var bytes = Encoding.UTF8.GetBytes(source);
-        var scanner = new Scanner(bytes, Encoding.UTF8);
-        
+        return Parse(bytes, Encoding.UTF8);
+    }
+
+    /// <summary>
+    /// Parse the given <paramref name="source"/> text into a <see cref="ListTag"/>.
+    /// </summary>
+    /// <param name="source">A string containing the SNBT code to parse.</param>
+    /// <returns>The <see cref="CompoundTag"/> instance described in the source text.</returns>
+    /// <exception cref="ArgumentNullException">When <paramref name="source"/> is <see langword="null"/>.</exception>
+    /// <exception cref="SyntaxErrorException">When <paramref name="source"/> is invalid SNBT code.</exception>
+    public static ListTag ParseList(string source)
+    {
+        var bytes = Encoding.UTF8.GetBytes(source);
+        return ParseList(bytes, Encoding.UTF8);
+    }
+
+    /// <summary>
+    /// Parse the given <paramref name="source"/> text into a <see cref="CompoundTag"/>.
+    /// </summary>
+    /// <param name="source">A string containing the SNBT code to parse.</param>
+    /// <param name="encoding">Encoding of the <paramref name="source"/>.</param>
+    /// <returns>The <see cref="CompoundTag"/> instance described in the source text.</returns>
+    /// <exception cref="ArgumentNullException">When <paramref name="source"/> is <see langword="null"/>.</exception>
+    /// <exception cref="SyntaxErrorException">When <paramref name="source"/> is invalid SNBT code.</exception>
+    public static CompoundTag Parse(ReadOnlySpan<byte> source, Encoding? encoding = null)
+    {
+        var scanner = new Scanner(source, encoding ?? Encoding.UTF8);
         scanner.MoveNext(true, true);
         scanner.AssertChar('{');
         return ParseCompound(null, ref scanner);
     }
-
+    
+    /// <summary>
+    /// Parse the given <paramref name="source"/> text into a <see cref="ListTag"/>.
+    /// </summary>
+    /// <param name="source">A string containing the SNBT code to parse.</param>
+    /// <param name="encoding">Encoding of the <paramref name="source"/>.</param>
+    /// <returns>The <see cref="CompoundTag"/> instance described in the source text.</returns>
+    /// <exception cref="ArgumentNullException">When <paramref name="source"/> is <see langword="null"/>.</exception>
+    /// <exception cref="SyntaxErrorException">When <paramref name="source"/> is invalid SNBT code.</exception>
+    public static ListTag ParseList(ReadOnlySpan<byte> source, Encoding? encoding = null)
+    {
+        var scanner = new Scanner(source, encoding ?? Encoding.UTF8);
+        scanner.MoveNext(true, true);
+        scanner.AssertChar('[');
+        return ParseList(null, ref scanner);
+    }
+    
     private static CompoundTag ParseCompound(string? name, ref Scanner scanner)
     {
         scanner.MoveNext(true, true);
@@ -40,23 +81,20 @@ public static class StringNbt
         if (scanner.Current == '}')
             return result;
 
-        while (true)
+        while (!scanner.IsEndOfInput)
         {
             // Read the name of the tag
             var childName = ParseString(ref scanner, out _);
             
             // Move to and asser the next significant character is a deliminator.
-            // scanner.MoveNext(true, true);
+            scanner.MoveNext(true, true);
             scanner.AssertChar(':');
             
             // Move to and parse the tag value
             scanner.MoveNext(true, true);
             var tag = ParseTag(childName, ref scanner);
             result.Add(tag);
-            // scanner.MoveNext(true, true);
-
-            if (char.IsWhiteSpace(scanner.Current))
-                scanner.MoveNext(true, true);
+            scanner.MoveNext(true, true);
             
             // Comma encountered, read another tag.
             if (scanner.Current == ',')
@@ -68,7 +106,7 @@ public static class StringNbt
             // Closing brace encountered, break loop.
             if (scanner.Current == '}')
             {
-                scanner.MoveNext(true, false);
+                // scanner.MoveNext(true, false);
                 break;
             }
             
@@ -79,6 +117,15 @@ public static class StringNbt
         return result;
     }
 
+    /// <summary>
+    /// Parses the next logical chunk of data as a string.
+    /// </summary>
+    /// <param name="scanner">A reference to the <see cref="Scanner"/> context.</param>
+    /// <param name="quoted">
+    /// Flag indicating if the value was enclosed in a pair of matching single/double quotes, otherwise
+    /// <see langword="false"/> if it was read as a literal span of characters from the input.
+    /// </param>
+    /// <returns>The scanned string.</returns>
     private static string ParseString(ref Scanner scanner, out bool quoted)
     {
         var quote = scanner.Current;
@@ -105,7 +152,6 @@ public static class StringNbt
             if (scanner.Current == quote)
             {
                 closed = true;
-                scanner.Position++;
                 break;
             }
 
@@ -129,8 +175,12 @@ public static class StringNbt
         var start = scanner.Position;
         for (var length = 0; scanner.MoveNext(false, true); length++)
         {
-            if (!AllowedInUnquoted(scanner.Current))
-                return new string(scanner.Source.Slice(start, length + 1));
+            if (AllowedInUnquoted(scanner.Current))
+                continue;
+
+            // Step back one character so not to consume the one that failed the permission check.
+            scanner.Position--;
+            return new string(scanner.Source.Slice(start, length + 1));
         }
 
         return string.Empty;
@@ -179,11 +229,10 @@ public static class StringNbt
                 return new IntTag(name, hex);
         }
         
-        // When all else fails, assume it is an unquoted string
+        // When all else fails, is could only have been an unquoted string
         return new StringTag(name, value);
     }
-
-
+    
     private static bool TryParseNumber(string? name, string value, char suffix, out Tag tag)
     {
         // A much less complicated char.ToLower()
@@ -239,34 +288,31 @@ public static class StringNbt
         if (scanner.Current == ']')
             return new ListTag(name, TagType.End);
 
-        if (scanner.Peek() == ';')
+        // No type-prefix, must be a ListTag
+        if (scanner.Peek() != ';') 
+            return ParseList(name, ref scanner);
+        
+        // This is an array of integral values
+        var prefix = scanner.Current;
+        scanner.Position += 2;
+        return prefix switch
         {
-            // This is an array of integer values
-            var prefix = scanner.Current;
-            scanner.Position += 2;
-            return prefix switch
-            {
-                'B' => new ByteArrayTag(name, ParseArrayValues<byte>(ref scanner)),
-                'I' => new IntArrayTag(name, ParseArrayValues<int>(ref scanner)),
-                'L' => new LongArrayTag(name, ParseArrayValues<long>(ref scanner)),
-                _ => throw scanner.SyntaxError($"Invalid type specifier. Expected 'B', 'I', or 'L', got '{prefix}'.")
-            };
-        }
-
-        // No prefix, so this must be a list of tags if valid
-        return ParseList(name, ref scanner);
+            'B' => new ByteArrayTag(name, ParseArrayValues<byte>(ref scanner)),
+            'I' => new IntArrayTag(name, ParseArrayValues<int>(ref scanner)),
+            'L' => new LongArrayTag(name, ParseArrayValues<long>(ref scanner)),
+            _ => throw scanner.SyntaxError($"Invalid type specifier. Expected 'B', 'I', or 'L', got '{prefix}'.")
+        };
     }
 
-    private static Tag ParseList(string? name, ref Scanner scanner)
+    private static ListTag ParseList(string? name, ref Scanner scanner)
     {
         var list = new List<Tag>();
         while (true)
         {
             var child = ParseTag(null, ref scanner);
             list.Add(child);
-        
-            if (char.IsWhiteSpace(scanner.Current))
-                scanner.MoveNext(true, true);
+            
+            scanner.MoveNext(true, true);
             
             // Comma encountered, read another tag.
             if (scanner.Current == ',')
@@ -278,7 +324,6 @@ public static class StringNbt
             // Closing brace encountered, break loop.
             if (scanner.Current == ']')
             {
-                scanner.MoveNext(true, false);
                 break;
             }
             
@@ -295,7 +340,6 @@ public static class StringNbt
         // Early-out for []
         if (scanner.Current == ']')
         {
-            scanner.Position++;
             return Array.Empty<T>();
         }
 
@@ -317,8 +361,7 @@ public static class StringNbt
         var values = new T[strings.Length];
         for (var i = 0; i < values.Length; i++)
             values[i] = T.Parse(strings[i], NumberStyles.Integer, NumberFormatInfo.InvariantInfo);
-
-        scanner.Position++; // Consume the closing ']'
+        
         return values;
     }
     
