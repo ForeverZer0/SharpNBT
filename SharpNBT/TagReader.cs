@@ -16,12 +16,12 @@ public class TagReader : TagIO
     /// <summary>
     /// Occurs when a tag has been fully deserialized from the stream.
     /// </summary>
-    public event TagReaderCallback<TagEventArgs> TagRead;
+    public event TagReaderCallback<TagEventArgs>? TagRead;
 
     /// <summary>
     /// Occurs when a tag has been encountered in the stream, after reading the first byte to determine its <see cref="TagType"/>.
     /// </summary>
-    public event TagReaderCallback<TagHandledEventArgs> TagEncountered;
+    public event TagReaderCallback<TagHandledEventArgs>? TagEncountered;
 
     private readonly bool leaveOpen;
 
@@ -189,8 +189,6 @@ public class TagReader : TagIO
     /// <returns>The deserialized <see cref="IntArrayTag"/> instance.</returns>
     public IntArrayTag ReadIntArray(bool named = true)
     {
-        const int INT_SIZE = sizeof(int);
-            
         var name = named ? ReadUTF8String() : null;
         var count = ReadCount();
             
@@ -202,8 +200,8 @@ public class TagReader : TagIO
             return new IntArrayTag(name, array);
         }
  
-        var buffer = new byte[count * INT_SIZE];
-        ReadToFixSizedBuffer(buffer, 0, count * INT_SIZE);
+        var buffer = new byte[count * sizeof(int)];
+        ReadToFixSizedBuffer(buffer, 0, count * sizeof(int));
 
         Span<int> values = MemoryMarshal.Cast<byte, int>(buffer);
         if (SwapEndian)
@@ -222,8 +220,6 @@ public class TagReader : TagIO
     /// <returns>The deserialized <see cref="LongArrayTag"/> instance.</returns>
     public LongArrayTag ReadLongArray(bool named = true)
     {
-        const int LONG_SIZE = sizeof(long);
-            
         var name = named ? ReadUTF8String() : null;
         var count = ReadCount();
             
@@ -235,8 +231,8 @@ public class TagReader : TagIO
             return new LongArrayTag(name, array);
         }
 
-        var buffer = new byte[count * LONG_SIZE];
-        ReadToFixSizedBuffer(buffer, 0, count * LONG_SIZE);
+        var buffer = new byte[count * sizeof(long)];
+        ReadToFixSizedBuffer(buffer, 0, count * sizeof(long));
 
         Span<long> values = MemoryMarshal.Cast<byte, long>(buffer);
         if (SwapEndian)
