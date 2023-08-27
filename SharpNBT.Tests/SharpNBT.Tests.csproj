@@ -8,6 +8,8 @@
         <LangVersion>latestmajor</LangVersion>
 
         <Nullable>enable</Nullable>
+
+        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     </PropertyGroup>
 
     <ItemGroup>

@@ -33,6 +33,14 @@ namespace SharpNBT.Tests
         }
 
         [Fact]
+        public void ParseBugged()
+        {
+            var testString = "{Count:1b,id:\"minecraft:netherite_sword\",tag:{Damage:0,Enchantments:[{id:\"minecraft:looting\",lvl:3s},{id:\"minecraft:smite\",lvl:5s},{id:\"minecraft:sweeping\",lvl:3s}],RepairCost:7,display:{Name:'{\"extra\":[{\"text\":\"我是修改的名字\"}],\"text\":\"\"}'}}}";
+            var tag = StringNbt.Parse(testString);
+            output.WriteLine(tag.PrettyPrinted());
+        }
+
+        [Fact]
         public void ParseSmall()
         {
             const string testString = "{name1:123,name2:\"sometext1\",name3:{subname1:456,subname2:\"sometext2\"}}";

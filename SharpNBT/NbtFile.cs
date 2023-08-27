@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using System.Threading.Tasks;
@@ -21,7 +22,7 @@ public static class NbtFile
     /// <param name="options">Bitwise flags to configure how data should be handled for compatibility between different specifications.</param>
     /// <typeparam name="T">The type of tag to deserialize.</typeparam>
     /// <returns>The deserialized <see cref="Tag"/> instance.</returns>
-    public static T Read<T>(string path, FormatOptions options, CompressionType compression = CompressionType.AutoDetect) where T : TagContainer
+    public static T Read<T>(string path, FormatOptions options, CompressionType compression = CompressionType.AutoDetect) where T : Tag, ICollection<Tag>
     {
         using var reader = new TagReader(GetReadStream(path, compression), options);
         return reader.ReadTag<T>();
@@ -47,7 +48,7 @@ public static class NbtFile
     /// <param name="compression">Indicates the compression algorithm used to compress the file.</param>
     /// <param name="options">Bitwise flags to configure how data should be handled for compatibility between different specifications.</param>
     /// <returns>The deserialized <see cref="Tag"/> instance.</returns>
-    public static async Task<T> ReadAsync<T>(string path, FormatOptions options, CompressionType compression = CompressionType.AutoDetect) where T : TagContainer
+    public static async Task<T> ReadAsync<T>(string path, FormatOptions options, CompressionType compression = CompressionType.AutoDetect) where T : Tag, ICollection<Tag>
     {
         await using var reader = new TagReader(GetReadStream(path, compression), options);
         return await reader.ReadTagAsync<T>();

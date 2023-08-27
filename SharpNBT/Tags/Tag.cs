@@ -35,8 +35,6 @@ public abstract class Tag : IEquatable<Tag>, ISerializable, ICloneable
             typeof(NumericTag<>),
             typeof(ArrayTag<>),
             typeof(Tag[]),
-            typeof(EnumerableTag<>),
-            typeof(TagContainer),
             typeof(ByteTag),
             typeof(ShortTag),
             typeof(IntTag),
