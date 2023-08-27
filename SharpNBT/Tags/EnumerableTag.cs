@@ -1,7 +1,6 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using System.Runtime.Serialization;
 using System.Text;
 using JetBrains.Annotations;
@@ -72,7 +71,9 @@ public abstract class EnumerableTag<T> : Tag, IList<T>
     protected EnumerableTag(SerializationInfo info, StreamingContext context) : base(info, context)
     {
         var dummy = info.GetInt32("count");
-        internalList.AddRange((T[]) info.GetValue("values", typeof(T[])));
+        var obj = info.GetValue("values", typeof(T[])) as T[];
+        if (obj is IEnumerable<T> e)
+            internalList.AddRange(e);
     }
 
     /// <summary>Populates a <see cref="T:System.Runtime.Serialization.SerializationInfo" /> with the data needed to serialize the target object.</summary>
@@ -101,7 +102,7 @@ public abstract class EnumerableTag<T> : Tag, IList<T>
     /// <exception cref="T:System.NotSupportedException">The <see cref="T:System.Collections.Generic.ICollection`1" /> is read-only.</exception>
     /// <footer><a href="https://docs.microsoft.com/en-us/dotnet/api/System.Collections.Generic.ICollection-1.Add?view=netcore-5.0">`ICollection.Add` on docs.microsoft.com</a></footer>
     [SuppressMessage("ReSharper", "AnnotationConflictInHierarchy")]
-    public virtual void Add([DisallowNull] T item) => internalList.Add(item);
+    public virtual void Add(T item) => internalList.Add(item);
 
     /// <summary>
     /// Adds the elements of the specified collection to the <see cref="EnumerableTag{T}"/>.
@@ -121,7 +122,7 @@ public abstract class EnumerableTag<T> : Tag, IList<T>
     /// <exception cref="T:System.NotSupportedException">The <see cref="T:System.Collections.Generic.IList`1" /> is read-only.</exception>
     /// <footer><a href="https://docs.microsoft.com/en-us/dotnet/api/System.Collections.Generic.IList-1.Insert?view=netcore-5.0">`IList.Insert` on docs.microsoft.com</a></footer>
     [SuppressMessage("ReSharper", "AnnotationConflictInHierarchy")]
-    public virtual void Insert(int index, [DisallowNull] T item) => internalList.Insert(index, item);
+    public virtual void Insert(int index, T item) => internalList.Insert(index, item);
 
     /// <summary>Gets or sets the element at the specified index.</summary>
     /// <param name="index">The zero-based index of the element to get or set.</param>
@@ -130,7 +131,6 @@ public abstract class EnumerableTag<T> : Tag, IList<T>
     /// <exception cref="T:System.NotSupportedException">The property is set and the <see cref="T:System.Collections.Generic.IList`1" /> is read-only.</exception>
     /// <returns>The element at the specified index.</returns>
     /// <footer><a href="https://docs.microsoft.com/en-us/dotnet/api/System.Collections.Generic.IList-1.Item?view=netcore-5.0">`IList.Item` on docs.microsoft.com</a></footer>
-    [DisallowNull]
     public virtual T this[int index]
     {
         get => internalList[index];

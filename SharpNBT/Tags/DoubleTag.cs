@@ -8,7 +8,7 @@ namespace SharpNBT;
 /// A tag that contains a single IEEE-754 double-precision floating point number.
 /// </summary>
 [PublicAPI][Serializable]
-public class DoubleTag : Tag<double>
+public class DoubleTag : NumericTag<double>
 {
     /// <summary>
     /// Creates a new instance of the <see cref="DoubleTag"/> class with the specified <paramref name="value"/>.
@@ -43,5 +43,5 @@ public class DoubleTag : Tag<double>
     /// </summary>
     /// <returns>This NBT tag in SNBT format.</returns>
     /// <seealso href="https://minecraft.fandom.com/wiki/NBT_format#SNBT_format"/>
-    public override string Stringify() => $"{StringifyName}{Value:0.0}D";
+    public override string Stringify() => $"{StringifyName}:{Value:0.0}D";
 }

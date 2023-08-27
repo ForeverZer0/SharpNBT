@@ -96,6 +96,8 @@ public class ListTag : TagContainer
         for (var i = 0; i < strings.Length; i++)
             strings[i] = this[i].Stringify();
             
-        return $"{StringifyName}[{string.Join(',', strings)}]";
+        // TODO: Use StringBuilder
+        
+        return $"{StringifyName}:[{string.Join(',', strings)}]";
     }
 }

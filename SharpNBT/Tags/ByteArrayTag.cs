@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.Serialization;
 using JetBrains.Annotations;
 
@@ -13,8 +14,17 @@ namespace SharpNBT;
 /// the bits are equivalent for your values.
 /// </remarks>
 [PublicAPI][Serializable]
-public class ByteArrayTag : EnumerableTag<byte>
+public class ByteArrayTag : ArrayTag<byte>
 {
+    /// <summary>
+    /// Initializes a new instance of the <see cref="ByteArrayTag"/>.
+    /// </summary>
+    /// <param name="name">The name of the tag, or <see langword="null"/> if tag has no name.</param>
+    /// <param name="capacity">The capacity of the array.</param>
+    public ByteArrayTag(string? name, int capacity) : base(TagType.IntArray, name, new byte[capacity])
+    {
+    }
+    
     /// <summary>
     /// Initializes a new instance of the <see cref="ByteArrayTag"/>.
     /// </summary>
@@ -29,7 +39,7 @@ public class ByteArrayTag : EnumerableTag<byte>
     /// </summary>
     /// <param name="name">The name of the tag, or <see langword="null"/> if tag has no name.</param>
     /// <param name="values">A collection of values to include in this tag.</param>
-    public ByteArrayTag(string? name, IEnumerable<byte> values) : base(TagType.ByteArray, name, values)
+    public ByteArrayTag(string? name, IEnumerable<byte> values) : base(TagType.ByteArray, name, values.ToArray())
     {
     }
         
@@ -38,7 +48,7 @@ public class ByteArrayTag : EnumerableTag<byte>
     /// </summary>
     /// <param name="name">The name of the tag, or <see langword="null"/> if tag has no name.</param>
     /// <param name="values">A collection of values to include in this tag.</param>
-    public ByteArrayTag(string? name, ReadOnlySpan<byte> values) : base(TagType.ByteArray, name, values)
+    public ByteArrayTag(string? name, ReadOnlySpan<byte> values) : base(TagType.ByteArray, name, values.ToArray())
     {
     }
         
@@ -63,11 +73,5 @@ public class ByteArrayTag : EnumerableTag<byte>
     /// </summary>
     /// <returns>This NBT tag in SNBT format.</returns>
     /// <seealso href="https://minecraft.fandom.com/wiki/NBT_format#SNBT_format"/>
-    public override string Stringify()
-    {
-        var values = new string[Count];
-        for (var i = 0; i < Count; i++)
-            values[i] = $"{this[i]}b";
-        return $"{StringifyName}[B;{string.Join(',', values)}]";
-    }
+    public override string Stringify() => Stringify('B', 'b');
 }

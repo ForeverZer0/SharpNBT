@@ -118,7 +118,7 @@ public class TagWriter : TagIO
     public virtual void WriteByteArray(ByteArrayTag tag)
     {
         WriteTypeAndName(tag);
-        WriteCount(tag);
+        WriteCount(tag.Count);
         BaseStream.Write(tag.ToArray(), 0, tag.Count);
     }
         
@@ -129,7 +129,7 @@ public class TagWriter : TagIO
     public virtual void WriteIntArray(IntArrayTag tag)
     {
         WriteTypeAndName(tag);
-        WriteCount(tag);
+        WriteCount(tag.Count);
             
         var values = new Span<int>(tag.ToArray());
         if (UseVarInt)
@@ -155,7 +155,7 @@ public class TagWriter : TagIO
     {
 
         WriteTypeAndName(tag);
-        WriteCount(tag);
+        WriteCount(tag.Count);
 
         var values = new Span<long>(tag.ToArray());
         if (UseVarInt)
@@ -182,7 +182,7 @@ public class TagWriter : TagIO
     {
         WriteTypeAndName(tag);
         BaseStream.WriteByte((byte) tag.ChildType);
-        WriteCount(tag);
+        WriteCount(tag.Count);
             
         foreach (var child in tag)
             WriteTag(child);
@@ -377,11 +377,11 @@ public class TagWriter : TagIO
         return bytes;
     }
 
-    private void WriteCount<T>(EnumerableTag<T> tag)
+    private void WriteCount(int count)
     {
         if (UseVarInt)
-            VarInt.Write(BaseStream, tag.Count, ZigZagEncoding);
+            VarInt.Write(BaseStream, count, ZigZagEncoding);
         else
-            BaseStream.Write(GetBytes(tag.Count), 0, sizeof(int));
+            BaseStream.Write(GetBytes(count), 0, sizeof(int));
     }
 }

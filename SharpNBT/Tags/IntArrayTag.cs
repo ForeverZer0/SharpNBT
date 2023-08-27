@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.Serialization;
 using JetBrains.Annotations;
 
@@ -9,15 +10,17 @@ namespace SharpNBT;
 /// A tag that whose value is a contiguous sequence of 32-bit integers.
 /// </summary>
 [PublicAPI][Serializable]
-public class IntArrayTag : EnumerableTag<int>
+public class IntArrayTag : ArrayTag<int>
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="IntArrayTag"/>.
     /// </summary>
     /// <param name="name">The name of the tag, or <see langword="null"/> if tag has no name.</param>
-    public IntArrayTag(string? name) : base(TagType.IntArray, name)
+    /// <param name="capacity">The capacity of the array.</param>
+    public IntArrayTag(string? name, int capacity) : base(TagType.IntArray, name, new int[capacity])
     {
     }
+    
     /// <summary>
     /// Initializes a new instance of the <see cref="IntArrayTag"/> with the specified <paramref name="values"/>.
     /// </summary>
@@ -33,7 +36,7 @@ public class IntArrayTag : EnumerableTag<int>
     /// </summary>
     /// <param name="name">The name of the tag, or <see langword="null"/> if tag has no name.</param>
     /// <param name="values">A collection of values to include in this tag.</param>
-    public IntArrayTag(string? name, IEnumerable<int> values) : base(TagType.IntArray, name, values)
+    public IntArrayTag(string? name, IEnumerable<int> values) : base(TagType.IntArray, name, values.ToArray())
     {
     }
 
@@ -42,7 +45,7 @@ public class IntArrayTag : EnumerableTag<int>
     /// </summary>
     /// <param name="name">The name of the tag, or <see langword="null"/> if tag has no name.</param>
     /// <param name="values">A collection of values to include in this tag.</param>
-    public IntArrayTag(string? name, ReadOnlySpan<int> values) : base(TagType.IntArray, name, values)
+    public IntArrayTag(string? name, ReadOnlySpan<int> values) : base(TagType.IntArray, name, values.ToArray())
     {
     }
         
@@ -67,5 +70,5 @@ public class IntArrayTag : EnumerableTag<int>
     /// </summary>
     /// <returns>This NBT tag in SNBT format.</returns>
     /// <seealso href="https://minecraft.fandom.com/wiki/NBT_format#SNBT_format"/>
-    public override string Stringify() => $"{StringifyName}[I;{string.Join(',', this)}]";
+    public override string Stringify() => Stringify('I', null);
 }

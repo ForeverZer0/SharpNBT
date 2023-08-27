@@ -8,7 +8,7 @@ namespace SharpNBT;
 /// A tag that contains a single 32-bit integer value.
 /// </summary>
 [PublicAPI][Serializable]
-public class IntTag : Tag<int>
+public class IntTag : NumericTag<int>
 {
     /// <summary>
     /// Gets or sets the value of this tag as an unsigned value.
@@ -70,5 +70,5 @@ public class IntTag : Tag<int>
     /// </summary>
     /// <returns>This NBT tag in SNBT format.</returns>
     /// <seealso href="https://minecraft.fandom.com/wiki/NBT_format#SNBT_format"/>
-    public override string Stringify() => $"{StringifyName}{Value}";
+    public override string Stringify() => $"{StringifyName}:{Value}";
 }

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.Serialization;
 using JetBrains.Annotations;
 
@@ -9,13 +10,14 @@ namespace SharpNBT;
 /// A tag that whose value is a contiguous sequence of 64-bit integers.
 /// </summary>
 [PublicAPI][Serializable]
-public class LongArrayTag : EnumerableTag<long>
+public class LongArrayTag : ArrayTag<long>
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="LongArrayTag"/>.
     /// </summary>
     /// <param name="name">The name of the tag, or <see langword="null"/> if tag has no name.</param>
-    public LongArrayTag(string? name) : base(TagType.LongArray, name)
+    /// <param name="capacity">The capacity of the array.</param>
+    public LongArrayTag(string? name, int capacity) : base(TagType.LongArray, name, new long[capacity])
     {
     }
     /// <summary>
@@ -23,7 +25,7 @@ public class LongArrayTag : EnumerableTag<long>
     /// </summary>
     /// <param name="name">The name of the tag, or <see langword="null"/> if tag has no name.</param>
     /// <param name="values">A collection of values to include in this tag.</param>
-    public LongArrayTag(string? name, long[] values) : base(TagType.LongArray, name, values)
+    public LongArrayTag(string? name, long[] values) : base(TagType.LongArray, name, values.ToArray())
     {
     }
         
@@ -41,7 +43,7 @@ public class LongArrayTag : EnumerableTag<long>
     /// </summary>
     /// <param name="name">The name of the tag, or <see langword="null"/> if tag has no name.</param>
     /// <param name="values">A collection of values to include in this tag.</param>
-    public LongArrayTag(string? name, IEnumerable<long> values) : base(TagType.LongArray, name, values)
+    public LongArrayTag(string? name, IEnumerable<long> values) : base(TagType.LongArray, name, values.ToArray())
     {
     }
         
@@ -50,7 +52,7 @@ public class LongArrayTag : EnumerableTag<long>
     /// </summary>
     /// <param name="name">The name of the tag, or <see langword="null"/> if tag has no name.</param>
     /// <param name="values">A collection of values to include in this tag.</param>
-    public LongArrayTag(string? name, ReadOnlySpan<long> values) : base(TagType.LongArray, name, values)
+    public LongArrayTag(string? name, ReadOnlySpan<long> values) : base(TagType.LongArray, name, values.ToArray())
     {
     }
         
@@ -66,11 +68,5 @@ public class LongArrayTag : EnumerableTag<long>
     /// </summary>
     /// <returns>This NBT tag in SNBT format.</returns>
     /// <seealso href="https://minecraft.fandom.com/wiki/NBT_format#SNBT_format"/>
-    public override string Stringify()
-    {
-        var values = new string[Count];
-        for (var i = 0; i < Count; i++)
-            values[i] = $"{this[i]}l";
-        return $"{StringifyName}[L;{string.Join(',', values)}]";
-    }
+    public override string Stringify() => Stringify('L', 'l');
 }

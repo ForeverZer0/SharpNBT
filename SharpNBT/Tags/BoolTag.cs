@@ -12,19 +12,19 @@ namespace SharpNBT;
 /// actually serialized as.
 /// </remarks>
 [PublicAPI][Serializable]
-[Obsolete("Use the IsBool and Bool properties of ByteTag. This class will be removed in a future release.")]
-public class BoolTag : Tag<bool>
+[Obsolete("Use the IsBool and Bool properties of ByteTag. This class will be removed in a future version.")]
+public class BoolTag : Tag
 {
-    private const string TRUE = "true";
-    private const string FALSE = "false";
-        
+    public bool Value { get; set; }
+    
     /// <summary>
     /// Creates a new instance of the <see cref="SharpNBT.ByteTag"/> class with the specified <paramref name="value"/>.
     /// </summary>
     /// <param name="name">The name of the tag, or <see langword="null"/> if tag has no name.</param>
     /// <param name="value">The value to assign to this tag.</param>
-    public BoolTag(string? name, bool value) : base(TagType.Byte, name, value)
+    public BoolTag(string? name, bool value) : base(TagType.Byte, name)
     {
+        Value = value;
     }
 
     /// <summary>
@@ -37,7 +37,7 @@ public class BoolTag : Tag<bool>
     }
         
     /// <inheritdoc cref="object.ToString"/>
-    public override string ToString() => $"TAG_Bool({PrettyName}): {(Value ? TRUE : FALSE)}";
+    public override string ToString() => $"TAG_Byte({PrettyName}): {(Value ? "true" : "false")}";
         
     /// <summary>
     /// Implicit conversion of this tag to a <see cref="byte"/>.
@@ -51,6 +51,6 @@ public class BoolTag : Tag<bool>
     /// </summary>
     /// <returns>This NBT tag in SNBT format.</returns>
     /// <seealso href="https://minecraft.fandom.com/wiki/NBT_format#SNBT_format"/>
-    public override string Stringify() => $"{StringifyName}{(Value ? TRUE : FALSE)}";
+    public override string Stringify() => $"{StringifyName}:{(Value ? "true" : "false")}";
         
 }

@@ -42,7 +42,7 @@ public class TagBuilder
     /// <param name="name">The name of the node to add.</param>
     /// <param name="value">The value of the tag.</param>
     /// <returns>Returns this <see cref="TagBuilder"/> instance for chaining.</returns>
-    public TagBuilder AddBool(string? name, bool value) => AddTag(new BoolTag(name, value));
+    public TagBuilder AddBool(string? name, bool value) => AddTag(new ByteTag(name, value));
         
     /// <summary>
     /// Adds a new unnamed <see cref="ByteTag"/> with the specified <paramref name="value"/> to the tree at the current depth.
@@ -58,7 +58,10 @@ public class TagBuilder
     /// <param name="value">The value of the tag.</param>
     /// <returns>Returns this <see cref="TagBuilder"/> instance for chaining.</returns>
     public TagBuilder AddByte(string? name, byte value) => AddTag(new ByteTag(name, value));
-
+    
+    /// <inheritdoc cref="AddByte(string,byte)"/>
+    public TagBuilder AddByte(string? name, int value) => AddByte(name, unchecked((byte)(value & 0xFF)));
+    
     /// <inheritdoc cref="AddByte(string,byte)"/>
     [CLSCompliant(false)]
     public TagBuilder AddByte(string? name, sbyte value) => AddByte(name, unchecked((byte)value));
@@ -70,6 +73,9 @@ public class TagBuilder
     /// <returns>Returns this <see cref="TagBuilder"/> instance for chaining.</returns>
     public TagBuilder AddByte(byte value) => AddByte(null, value);
 
+    /// <inheritdoc cref="AddByte(sbyte)"/>
+    public TagBuilder AddByte(int value) => AddByte(null, unchecked((byte)(value & 0xFF)));
+    
     /// <inheritdoc cref="AddByte(sbyte)"/>
     [CLSCompliant(false)]
     public TagBuilder AddByte(sbyte value) => AddByte(null, unchecked((byte)value));
@@ -83,6 +89,9 @@ public class TagBuilder
     public TagBuilder AddShort(string? name, short value) => AddTag(new ShortTag(name, value));
 
     /// <inheritdoc cref="AddShort(string,short)"/>
+    public TagBuilder AddShort(string? name, int value) => AddShort(name, unchecked((short)(value & 0xFFFF)));
+    
+    /// <inheritdoc cref="AddShort(string,short)"/>
     [CLSCompliant(false)]
     public TagBuilder AddShort(string? name, ushort value) => AddShort(name, unchecked((short)value));
 
@@ -93,6 +102,9 @@ public class TagBuilder
     /// <returns>Returns this <see cref="TagBuilder"/> instance for chaining.</returns>
     public TagBuilder AddShort(short value) => AddShort(null, value);
 
+    /// <inheritdoc cref="AddShort(short)"/>
+    public TagBuilder AddShort(int value) => AddShort(null, unchecked((short)(value & 0xFFFF)));
+    
     /// <inheritdoc cref="AddShort(short)"/>
     [CLSCompliant(false)]
     public TagBuilder AddShort(ushort value) => AddShort(null, unchecked((short)value));
@@ -236,8 +248,7 @@ public class TagBuilder
     /// <inheritdoc cref="AddByteArray(byte[])"/>
     [CLSCompliant(false)]
     public TagBuilder AddByteArray(IEnumerable<sbyte> values) => AddByteArray(null, values.ToArray());
-        
-        
+    
     /// <summary>
     /// Adds a new <see cref="IntArrayTag"/> with the specified <paramref name="values"/> to the tree at the current depth.
     /// </summary>

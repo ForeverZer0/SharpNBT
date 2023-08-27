@@ -13,7 +13,7 @@ namespace SharpNBT;
 /// equivalent.
 /// </remarks>
 [PublicAPI][Serializable]
-public class ByteTag : Tag<byte>
+public class ByteTag : NumericTag<byte>
 {
     /// <summary>
     /// Gets a flag indicating if this <see cref="ByteTag"/> was assigned a <see cref="bool"/> value.
@@ -95,9 +95,13 @@ public class ByteTag : Tag<byte>
     protected ByteTag(SerializationInfo info, StreamingContext context) : base(info, context)
     {
     }
-        
+
     /// <inheritdoc cref="object.ToString"/>
-    public override string ToString() => $"TAG_Byte({PrettyName}): {Value}";
+    public override string ToString()
+    {
+        object obj = IsBool ? Bool : Value;
+        return $"TAG_Byte({PrettyName}): {obj}";
+    }
         
     /// <summary>
     /// Implicit conversion of this tag to a <see cref="byte"/>.
@@ -126,5 +130,5 @@ public class ByteTag : Tag<byte>
     /// </summary>
     /// <returns>This NBT tag in SNBT format.</returns>
     /// <seealso href="https://minecraft.fandom.com/wiki/NBT_format#SNBT_format"/>
-    public override string Stringify() => $"{StringifyName}{Value}B";
+    public override string Stringify() => $"{StringifyName}:{Value}B";
 }
