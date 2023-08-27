@@ -20,7 +20,7 @@ public class ListTag : Tag, IList<Tag>
     /// <summary>
     /// Gets the NBT type of this tag's children.
     /// </summary>
-    public TagType ChildType { get; private set; }
+    public TagType ChildType { get; }
 
     /// <summary>
     /// Creates a new instance of the <see cref="ListTag"/> class.
@@ -54,7 +54,7 @@ public class ListTag : Tag, IList<Tag>
     public ListTag(string? name, TagType childType, IEnumerable<Tag> children) : this(name, childType)
     {
         foreach (var item in children)
-            list.Add(AssertType(item));
+            list.Add(ValidateChild(item));
     }
 
     /// <inheritdoc />
@@ -64,12 +64,12 @@ public class ListTag : Tag, IList<Tag>
     IEnumerator IEnumerable.GetEnumerator() => list.GetEnumerator();
 
     /// <inheritdoc />
-    public void Add(Tag item) => list.Add(AssertType(item));
+    public void Add(Tag item) => list.Add(ValidateChild(item));
 
     public void AddRange(IEnumerable<Tag> items)
     {
         foreach (var item in items)
-            list.Add(AssertType(item));
+            list.Add(ValidateChild(item));
     }
 
     /// <inheritdoc />
@@ -82,7 +82,16 @@ public class ListTag : Tag, IList<Tag>
     public void CopyTo(Tag[] array, int arrayIndex) => list.CopyTo(array, arrayIndex);
 
     /// <inheritdoc />
-    public bool Remove(Tag item) => list.Remove(item);
+    public bool Remove(Tag item)
+    {
+        if (list.Remove(item))
+        {
+            item.Parent = null;
+            return true;
+        }
+
+        return false;
+    }
 
     /// <inheritdoc />
     public int Count => list.Count;
@@ -94,16 +103,21 @@ public class ListTag : Tag, IList<Tag>
     public int IndexOf(Tag item) => list.IndexOf(item);
 
     /// <inheritdoc />
-    public void Insert(int index, Tag item) => list.Insert(index, AssertType(item));
+    public void Insert(int index, Tag item) => list.Insert(index, ValidateChild(item));
 
     /// <inheritdoc />
-    public void RemoveAt(int index) => list.RemoveAt(index);
+    public void RemoveAt(int index)
+    {
+        var item = list[index];
+        item.Parent = null;
+        list.RemoveAt(index);
+    }
 
     /// <inheritdoc />
     public Tag this[int index]
     {
         get => list[index];
-        set => list[index] = AssertType(value);
+        set => list[index] = ValidateChild(value);
     }
     
     /// <inheritdoc />
@@ -173,14 +187,13 @@ public class ListTag : Tag, IList<Tag>
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private Tag AssertType(Tag tag)
+    private Tag ValidateChild(Tag tag)
     {
         if (tag.Type != ChildType)
             throw new ArrayTypeMismatchException(Strings.ChildWrongType);
+        tag.Parent = this;
         return tag;
     }
     
     private readonly List<Tag> list;
-    
-
 }

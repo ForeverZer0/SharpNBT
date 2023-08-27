@@ -39,12 +39,12 @@ public class CompoundTag : Tag, IDictionary<string, Tag>, ICollection<Tag>
     {
         foreach (var value in values)
         {
-            dict.Add(value.Name!, AssertName(value));
+            dict.Add(value.Name!, ValidateChild(value));
         }
     }
-    
+
     /// <inheritdoc />
-    void ICollection<KeyValuePair<string, Tag>>.Add(KeyValuePair<string, Tag> item) => dict.Add(item.Key, item.Value);
+    void ICollection<KeyValuePair<string, Tag>>.Add(KeyValuePair<string, Tag> item) => Add(item.Value);
 
     /// <inheritdoc />
     bool ICollection<KeyValuePair<string, Tag>>.Contains(KeyValuePair<string, Tag> item) => dict.Contains(item);
@@ -61,12 +61,25 @@ public class CompoundTag : Tag, IDictionary<string, Tag>, ICollection<Tag>
     
     /// <inheritdoc />
     bool ICollection<Tag>.IsReadOnly => false;
-    
+
     /// <inheritdoc />
-    bool ICollection<KeyValuePair<string, Tag>>.Remove(KeyValuePair<string, Tag> item) => dict.Remove(item.Key);
+    bool ICollection<KeyValuePair<string, Tag>>.Remove(KeyValuePair<string, Tag> item)
+    {
+        if (dict.Remove(item.Key))
+        {
+            item.Value.Parent = null;
+            return true;
+        }
+        return false;
+    }
 
     /// <inheritdoc cref="ICollection{T}.Clear"/>
-    public void Clear() => dict.Clear();
+    public void Clear()
+    {
+        foreach (var child in dict.Values)
+            child.Parent = null;
+        dict.Clear();
+    }
     
     /// <inheritdoc cref="ICollection{T}.Clear"/>
     public int Count => dict.Count;
@@ -88,10 +101,10 @@ public class CompoundTag : Tag, IDictionary<string, Tag>, ICollection<Tag>
     }
     
     /// <inheritdoc />
-    public void Add(string key, Tag value) => dict.Add(key, AssertName(value));
+    public void Add(string key, Tag value) => dict.Add(key, ValidateChild(value));
     
     /// <inheritdoc cref="ICollection{T}.Add"/>
-    public void Add(Tag value) => dict.Add(value.Name!, AssertName(value));
+    public void Add(Tag value) => dict.Add(value.Name!, ValidateChild(value));
 
     /// <inheritdoc />
     public bool ContainsKey(string key) => dict.ContainsKey(key);
@@ -100,10 +113,24 @@ public class CompoundTag : Tag, IDictionary<string, Tag>, ICollection<Tag>
     public bool Contains(Tag tag) => !string.IsNullOrEmpty(tag.Name) && dict.ContainsKey(tag.Name);
 
     /// <inheritdoc />
-    public bool Remove(string key) => dict.Remove(key);
+    public bool Remove(string key)
+    {
+        if (dict.TryGetValue(key, out var tag))
+            tag.Parent = null;
+        return dict.Remove(key);
+    }
 
     /// <inheritdoc />
-    public bool Remove(Tag item) => !string.IsNullOrWhiteSpace(item.Name) && dict.Remove(item.Name);
+    public bool Remove(Tag item)
+    {
+        if (!string.IsNullOrWhiteSpace(item.Name) && dict.Remove(item.Name))
+        {
+            item.Parent = null;
+            return true;
+        }
+
+        return false;
+    }
 
     /// <inheritdoc />
     public bool TryGetValue(string key, out Tag value) => dict.TryGetValue(key, out value!);
@@ -131,7 +158,7 @@ public class CompoundTag : Tag, IDictionary<string, Tag>, ICollection<Tag>
     public Tag this[string name]
     {
         get => dict[name];
-        set => dict[name] = value;
+        set => dict[name] = ValidateChild(value);
     }
 
     public TTag Get<TTag>(string name) where TTag : Tag
@@ -249,10 +276,11 @@ public class CompoundTag : Tag, IDictionary<string, Tag>, ICollection<Tag>
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static Tag AssertName(Tag tag)
+    private Tag ValidateChild(Tag tag)
     {
         if (string.IsNullOrWhiteSpace(tag.Name))
             throw new FormatException(Strings.ChildrenMustBeNamed);
+        tag.Parent = this;
         return tag;
     }
 }

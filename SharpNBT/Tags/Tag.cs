@@ -31,7 +31,7 @@ public abstract class Tag : IEquatable<Tag>, ICloneable
     /// <summary>
     /// Gets the parent <see cref="Tag"/> this object is a child of.
     /// </summary>
-    [Obsolete("Parent property will be removed in a future version.")]
+    [Obsolete("Parent property may be removed in a future version.")]
     public Tag? Parent { get; internal set; }
         
     /// <summary>
@@ -181,7 +181,7 @@ public abstract class Tag : IEquatable<Tag>, ICloneable
         // Serialize then deserialize to make a deep-copy
         using var stream = new MemoryStream();
             
-        // Might as well not worry about swapping bits, just use native endian
+        // Use native endian 
         var opts = BitConverter.IsLittleEndian ? FormatOptions.LittleEndian : FormatOptions.BigEndian;
         using var writer = new TagWriter(stream, opts, true);
         using var reader = new TagReader(stream, opts, true);
@@ -192,6 +192,7 @@ public abstract class Tag : IEquatable<Tag>, ICloneable
         return reader.ReadTag(!string.IsNullOrWhiteSpace(Name));
     }
 
+    
     /// <summary>
     /// Tests for equality of this object with another <see cref="Tag"/> instance.
     /// </summary>
