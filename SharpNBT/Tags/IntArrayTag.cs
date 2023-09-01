@@ -73,11 +73,7 @@ public class IntArrayTag : ArrayTag<int>
         var word = Count == 1 ? Strings.WordElement : Strings.WordElements;
         return $"TAG_Int_Array({PrettyName}): [{Count} {word}]";
     }
-        
-    /// <summary>
-    /// Gets the <i>string</i> representation of this NBT tag (SNBT).
-    /// </summary>
-    /// <returns>This NBT tag in SNBT format.</returns>
-    /// <seealso href="https://minecraft.fandom.com/wiki/NBT_format#SNBT_format"/>
-    public override string Stringify() => Stringify('I', null);
+
+    /// <inheritdoc />
+    public override string Stringify(bool named = true) => Stringify(named, 'I', null);
 }

@@ -175,15 +175,21 @@ public class ListTag : Tag, IList<Tag>
     /// </summary>
     /// <returns>This NBT tag in SNBT format.</returns>
     /// <seealso href="https://minecraft.fandom.com/wiki/NBT_format#SNBT_format"/>
-    public override string Stringify()
+    public override string Stringify(bool named = true)
     {
-        var strings = new string[Count];
-        for (var i = 0; i < strings.Length; i++)
-            strings[i] = this[i].Stringify();
-            
-        // TODO: Use StringBuilder
-        
-        return $"{StringifyName}:[{string.Join(',', strings)}]";
+        var sb = new StringBuilder();
+        if (named)
+            sb.Append($"{StringifyName}:");
+
+        sb.Append('[');
+        for (var i = 0; i < list.Count; i++)
+        {
+            if (i > 0)
+                sb.Append(',');
+            sb.Append(list[i].Stringify(false));
+        }
+        sb.Append(']');
+        return sb.ToString();
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

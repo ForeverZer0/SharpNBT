@@ -47,13 +47,12 @@ public class StringTag : Tag, IEquatable<StringTag>
     /// <param name="tag">The tag to convert.</param>
     /// <returns>The tag represented as a <see cref="string"/>.</returns>
     public static implicit operator string(StringTag tag) => tag.Value;
-        
-    /// <summary>
-    /// Gets the <i>string</i> representation of this NBT tag (SNBT).
-    /// </summary>
-    /// <returns>This NBT tag in SNBT format.</returns>
-    /// <seealso href="https://minecraft.fandom.com/wiki/NBT_format#SNBT_format"/>
-    public override string Stringify() => $"{StringifyName}:\"{Value}\""; // TODO: Does this get properly escaped?
+
+    /// <inheritdoc />
+    public override string Stringify(bool named = true)
+    {
+        return named ? $"{StringifyName}:\"{Value}\"" : $"\"{Value}\"";
+    }
 
     /// <inheritdoc />
     public bool Equals(StringTag? other)

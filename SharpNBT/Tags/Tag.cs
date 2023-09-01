@@ -212,9 +212,10 @@ public abstract class Tag : IEquatable<Tag>, ICloneable
     /// <summary>
     /// Gets the <i>string</i> representation of this NBT tag (SNBT).
     /// </summary>
+    /// <param name="named">Flag indicating if the name of the tag should be written.</param>
     /// <returns>This NBT tag in SNBT format.</returns>
     /// <seealso href="https://minecraft.fandom.com/wiki/NBT_format#SNBT_format"/>
-    public abstract string Stringify();
+    public abstract string Stringify(bool named = true);
 
     /// <summary>
     /// Gets the name in a formatted properly for SNBT.

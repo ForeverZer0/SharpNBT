@@ -82,10 +82,12 @@ public abstract class ArrayTag<T> : Tag, IReadOnlyList<T> where T : unmanaged, I
     /// <returns>A reference to the first value in the underlying array.</returns>
     public ref T GetPinnableReference() => ref array[0] ;
     
-    private protected string Stringify(char prefix, char? suffix)
+    private protected string Stringify(bool named, char prefix, char? suffix)
     {
         var sb = new StringBuilder(32 + array.Length * 4);
-        sb.Append($"{StringifyName}:[{prefix};");
+        if (named)
+            sb.Append($"{StringifyName}:");
+        sb.Append($"[{prefix};");
 
         for (var i = 0; i < array.Length; i++)
         {

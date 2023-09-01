@@ -71,10 +71,6 @@ public class LongArrayTag : ArrayTag<long>
         return $"TAG_Long_Array({PrettyName}): [{Count} {word}]";
     }
 
-    /// <summary>
-    /// Gets the <i>string</i> representation of this NBT tag (SNBT).
-    /// </summary>
-    /// <returns>This NBT tag in SNBT format.</returns>
-    /// <seealso href="https://minecraft.fandom.com/wiki/NBT_format#SNBT_format"/>
-    public override string Stringify() => Stringify('L', 'l');
+    /// <inheritdoc />
+    public override string Stringify(bool named = true) => Stringify(named, 'L', 'l');
 }

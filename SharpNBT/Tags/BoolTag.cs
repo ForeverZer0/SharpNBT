@@ -49,12 +49,12 @@ public class BoolTag : Tag
     /// <param name="tag">The tag to convert.</param>
     /// <returns>The tag represented as a <see cref="byte"/>.</returns>
     public static implicit operator bool(BoolTag tag) => tag.Value;
-        
-    /// <summary>
-    /// Gets the <i>string</i> representation of this NBT tag (SNBT).
-    /// </summary>
-    /// <returns>This NBT tag in SNBT format.</returns>
-    /// <seealso href="https://minecraft.fandom.com/wiki/NBT_format#SNBT_format"/>
-    public override string Stringify() => $"{StringifyName}:{(Value ? "true" : "false")}";
+
+    /// <inheritdoc />
+    public override string Stringify(bool named = true)
+    {
+        var value = Value ? "true" : "false";
+        return named ? $"{StringifyName}:{value}" : value;
+    }
         
 }

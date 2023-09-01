@@ -13,11 +13,13 @@
         <PackageTags>nbt;named binary tag;minecraft;serialization;java;bedrock;pocket edition;varint;varlong;zlib</PackageTags>
         <Copyright>Copyright © Eric Freed 2021</Copyright>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-        <PackageVersion>1.2.0</PackageVersion>
-        <AssemblyVersion>1.2.0</AssemblyVersion>
-        <FileVersion>1.2.0</FileVersion>
+        <PackageVersion>1.3.1</PackageVersion>
+        <AssemblyVersion>1.3.1</AssemblyVersion>
+        <FileVersion>1.3.1</FileVersion>
         <LangVersion>latestmajor</LangVersion>
         <Nullable>enable</Nullable>
+        <PackageReadmeFile>README.md</PackageReadmeFile>
+        <PackageReleaseNotes>Hotfix to correct bug with Stringified output.</PackageReleaseNotes>
     </PropertyGroup>
 
     <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
@@ -25,6 +27,7 @@
     </PropertyGroup>
     
     <ItemGroup>
+        <None Include="README.md" Pack="true" Visible="true" PackagePath="/"/>
         <None Include="icon.png" Pack="true" Visible="true" PackagePath="" />
     </ItemGroup>
     

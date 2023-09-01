@@ -242,36 +242,35 @@ public class CompoundTag : Tag, IDictionary<string, Tag>, ICollection<Tag>
         buffer.AppendLine(space + "}");
     }
 
-    /// <summary>
-    /// Gets the <i>string</i> representation of this NBT tag (SNBT).
-    /// </summary>
-    /// <returns>This NBT tag in SNBT format.</returns>
-    /// <seealso href="https://minecraft.fandom.com/wiki/NBT_format#SNBT_format"/>
-    public override string Stringify()
+    /// <inheritdoc />
+    public override string Stringify(bool named = true)
     {
         var sb = new StringBuilder();
-        sb.Append($"{StringifyName}:{{");
+        if (named)
+            sb.Append($"{StringifyName}:");
+        sb.Append('{');
 
         var i = 0;
         foreach (var value in dict.Values)
         {
             if (i++ > 0)
                 sb.Append(',');
-            sb.Append(value);
+            sb.Append(value.Stringify(true));
         }
         sb.Append('}');
         return sb.ToString();
     }
-        
+
     /// <summary>
     /// Gets the <i>string</i> representation of this NBT tag (SNBT).
     /// </summary>
     /// <param name="topLevel">Flag indicating if this is the top-level tag that should be wrapped in braces.</param>
+    /// <param name="named">Flag indicating if the name of the NBT should be written.</param>
     /// <returns>This NBT tag in SNBT format.</returns>
     /// <seealso href="https://minecraft.fandom.com/wiki/NBT_format#SNBT_format"/>
-    public string Stringify(bool topLevel)
+    public string Stringify(bool topLevel, bool named)
     {
-        var str = Stringify();
+        var str = Stringify(named);
         return topLevel ? $"{{{str}}}" : str;
     }
 
