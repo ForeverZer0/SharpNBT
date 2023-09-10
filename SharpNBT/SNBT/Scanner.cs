@@ -44,7 +44,7 @@ internal ref struct Scanner
                 SyntaxError("Unexpected end of input.");
             return false;
         }
-        
+        Console.Write(Current);
         if (skipWhitespace && char.IsWhiteSpace(Current))
             goto ReadChar;
         return true;

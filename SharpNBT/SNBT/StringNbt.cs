@@ -83,6 +83,13 @@ public static class StringNbt
 
         while (!scanner.IsEndOfInput)
         {
+            // Closing brace encountered, break loop.
+            if (scanner.Current == '}')
+            {
+                // scanner.MoveNext(true, false);
+                break;
+            }
+
             // Read the name of the tag
             var childName = ParseString(ref scanner, out _);
             
@@ -94,21 +101,15 @@ public static class StringNbt
             scanner.MoveNext(true, true);
             var tag = ParseTag(childName, ref scanner);
             result.Add(tag);
-            scanner.MoveNext(true, true);
-            
+            scanner.MoveNext(false, true);
             // Comma encountered, read another tag.
-            if (scanner.Current == ',')
+            if (scanner.Current == ','||scanner.Current == '\n')
             {
                 scanner.MoveNext(true, true);
                 continue;
             }
 
-            // Closing brace encountered, break loop.
-            if (scanner.Current == '}')
-            {
-                // scanner.MoveNext(true, false);
-                break;
-            }
+            
             
             // Invalid character
             scanner.SyntaxError($"Expected ',' or '}}', got '{scanner.Current}'.");
@@ -309,24 +310,29 @@ public static class StringNbt
         var list = new List<Tag>();
         while (true)
         {
-            var child = ParseTag(null, ref scanner);
-            list.Add(child);
-            
-            scanner.MoveNext(true, true);
-            
-            // Comma encountered, read another tag.
-            if (scanner.Current == ',')
-            {
-                scanner.MoveNext(true, true);
-                continue;
-            }
-
             // Closing brace encountered, break loop.
             if (scanner.Current == ']')
             {
                 break;
             }
+
+
+            var child = ParseTag(null, ref scanner);
+            list.Add(child);
             
+            scanner.MoveNext(false, true);
+            
+            // Comma encountered, read another tag.
+            if (scanner.Current == ',' || scanner.Current == '\n')
+            {
+                scanner.MoveNext(true, true);
+                continue;
+            }
+
+            if (scanner.Current == ']')
+            {
+                break;
+            }
             // Invalid character
             scanner.SyntaxError($"Expected ',' or ']', got '{scanner.Current}'.");
         }
@@ -349,7 +355,7 @@ public static class StringNbt
             var c = char.ToLowerInvariant(scanner.Current);
             if (c == ']')
                 break;
-            if (char.IsNumber(c) || c == ',')
+            if (char.IsNumber(c) || c == ',' || c == '-')
                 continue;
             if (c is not ('b' or 'l'))
                 scanner.SyntaxError($"Invalid character '{c}' in integer array.");
