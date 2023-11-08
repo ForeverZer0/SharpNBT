@@ -21,10 +21,10 @@ public static class StringNbt
     /// <returns>The <see cref="CompoundTag"/> instance described in the source text.</returns>
     /// <exception cref="ArgumentNullException">When <paramref name="source"/> is <see langword="null"/>.</exception>
     /// <exception cref="SyntaxErrorException">When <paramref name="source"/> is invalid SNBT code.</exception>
-    public static CompoundTag Parse(string source)
+    public static CompoundTag Parse(string source,bool warp = false)
     {
         var bytes = Encoding.UTF8.GetBytes(source);
-        return Parse(bytes, Encoding.UTF8);
+        return Parse(bytes, Encoding.UTF8,warp);
     }
 
     /// <summary>
@@ -48,12 +48,12 @@ public static class StringNbt
     /// <returns>The <see cref="CompoundTag"/> instance described in the source text.</returns>
     /// <exception cref="ArgumentNullException">When <paramref name="source"/> is <see langword="null"/>.</exception>
     /// <exception cref="SyntaxErrorException">When <paramref name="source"/> is invalid SNBT code.</exception>
-    public static CompoundTag Parse(ReadOnlySpan<byte> source, Encoding? encoding = null)
+    public static CompoundTag Parse(ReadOnlySpan<byte> source, Encoding? encoding = null,bool warp = false)
     {
         var scanner = new Scanner(source, encoding ?? Encoding.UTF8);
         scanner.MoveNext(true, true);
         scanner.AssertChar('{');
-        return ParseCompound(null, ref scanner);
+        return ParseCompound(null, ref scanner, warp);
     }
     
     /// <summary>
@@ -72,7 +72,7 @@ public static class StringNbt
         return ParseList(null, ref scanner);
     }
     
-    private static CompoundTag ParseCompound(string? name, ref Scanner scanner)
+    private static CompoundTag ParseCompound(string? name, ref Scanner scanner,bool warp = false)
     {
         scanner.MoveNext(true, true);
         
@@ -92,26 +92,39 @@ public static class StringNbt
             
             // Move to and parse the tag value
             scanner.MoveNext(true, true);
-            var tag = ParseTag(childName, ref scanner);
+            var tag = ParseTag(childName, ref scanner, warp);
             result.Add(tag);
             scanner.MoveNext(true, true);
-            
-            // Comma encountered, read another tag.
-            if (scanner.Current == ',')
+            //针对没有,的
+            if(warp)
             {
-                scanner.MoveNext(true, true);
-                continue;
+                if (scanner.Current == '}')
+                {
+                    // scanner.MoveNext(true, false);
+                    break;
+                }
             }
+            else
+            {
+                // Comma encountered, read another tag.
+                if (scanner.Current == ',')
+                {
+                    scanner.MoveNext(true, true);
+                    continue;
+                }
 
-            // Closing brace encountered, break loop.
-            if (scanner.Current == '}')
-            {
-                // scanner.MoveNext(true, false);
-                break;
+                // Closing brace encountered, break loop.
+                if (scanner.Current == '}')
+                {
+                    // scanner.MoveNext(true, false);
+                    break;
+                }
+
+                // Invalid character
+                scanner.SyntaxError($"Expected ',' or '}}', got '{scanner.Current}'.");
             }
             
-            // Invalid character
-            scanner.SyntaxError($"Expected ',' or '}}', got '{scanner.Current}'.");
+            
         }
 
         return result;
@@ -186,17 +199,17 @@ public static class StringNbt
         return string.Empty;
     }
 
-    private static Tag ParseTag(string? name, ref Scanner scanner)
+    private static Tag ParseTag(string? name, ref Scanner scanner,bool warp = false)
     {
         return scanner.Current switch
         {
-            '{' => ParseCompound(name, ref scanner),
-            '[' => ParseArray(name, ref scanner),
-            _ => ParseLiteral(name, ref scanner)
+            '{' => ParseCompound(name, ref scanner,warp),
+            '[' => ParseArray(name, ref scanner,warp),
+            _ => ParseLiteral(name, ref scanner,warp)
         };
     }
 
-    private static Tag ParseLiteral(string? name, ref Scanner scanner)
+    private static Tag ParseLiteral(string? name, ref Scanner scanner, bool warp = false)
     {
         // Read the input as a string
         var value = ParseString(ref scanner, out var quoted);
@@ -282,7 +295,7 @@ public static class StringNbt
         return false;
     }
     
-    private static Tag ParseArray(string? name, ref Scanner scanner)
+    private static Tag ParseArray(string? name, ref Scanner scanner, bool warp = false)
     {
         scanner.MoveNext(true, true);
         if (scanner.Current == ']')
@@ -290,7 +303,7 @@ public static class StringNbt
 
         // No type-prefix, must be a ListTag
         if (scanner.Peek() != ';') 
-            return ParseList(name, ref scanner);
+            return ParseList(name, ref scanner,warp);
         
         // This is an array of integral values
         var prefix = scanner.Current;
@@ -304,16 +317,24 @@ public static class StringNbt
         };
     }
 
-    private static ListTag ParseList(string? name, ref Scanner scanner)
+    private static ListTag ParseList(string? name, ref Scanner scanner, bool warp = false)
     {
         var list = new List<Tag>();
         while (true)
         {
-            var child = ParseTag(null, ref scanner);
+            var child = ParseTag(null, ref scanner, warp);
             list.Add(child);
             
             scanner.MoveNext(true, true);
             
+            if(warp)
+            {
+                if (scanner.Current == ']')
+                {
+                    break;
+                }
+                continue;
+            }
             // Comma encountered, read another tag.
             if (scanner.Current == ',')
             {
