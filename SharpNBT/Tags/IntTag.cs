@@ -53,7 +53,8 @@ public class IntTag : NumericTag<int>
         
     /// <inheritdoc cref="object.ToString"/>
     public override string ToString() => $"TAG_Int({PrettyName}): {Value}";
-        
+    public override string ToWarppedString() => $"{WarpedName}: {Value}";
+
     /// <summary>
     /// Implicit conversion of this tag to a <see cref="int"/>.
     /// </summary>

@@ -42,7 +42,8 @@ public class BoolTag : Tag
     
     /// <inheritdoc cref="object.ToString"/>
     public override string ToString() => $"TAG_Byte({PrettyName}): {(Value ? "true" : "false")}";
-        
+    public override string ToWarppedString() => $"T{PrettyName}: {(Value ? "true" : "false")}";
+
     /// <summary>
     /// Implicit conversion of this tag to a <see cref="byte"/>.
     /// </summary>

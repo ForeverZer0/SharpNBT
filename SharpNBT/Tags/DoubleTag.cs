@@ -33,7 +33,8 @@ public class DoubleTag : NumericTag<double>
         
     /// <inheritdoc cref="object.ToString"/>
     public override string ToString() => $"TAG_Double({PrettyName}): {Value:0.0}";
-        
+    public override string ToWarppedString() => $"{WarpedName}: {Value}d";
+
     /// <summary>
     /// Implicit conversion of this tag to a <see cref="double"/>.
     /// </summary>

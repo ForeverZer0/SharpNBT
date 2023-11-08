@@ -12,14 +12,15 @@ namespace SharpNBT;
 /// recommended to use the <see cref="SignedValue"/> property if your language supports a signed 8-bit value, otherwise simply ensure the bits are
 /// equivalent.
 /// </remarks>
-[PublicAPI][Serializable]
+[PublicAPI]
+[Serializable]
 public class ByteTag : NumericTag<byte>
 {
     /// <summary>
     /// Gets a flag indicating if this <see cref="ByteTag"/> was assigned a <see cref="bool"/> value.
     /// </summary>
     public bool IsBool { get; private set; }
-    
+
     /// <inheritdoc cref="Tag{T}.Value"/>
     public new byte Value
     {
@@ -30,7 +31,7 @@ public class ByteTag : NumericTag<byte>
             IsBool = false;
         }
     }
-    
+
     /// <summary>
     /// Gets or sets the value of this tag as an unsigned value.
     /// </summary>
@@ -47,7 +48,7 @@ public class ByteTag : NumericTag<byte>
             IsBool = false;
         }
     }
-    
+
     /// <summary>
     /// Gets or sets the value of this tag as a boolean value.
     /// </summary>
@@ -60,32 +61,28 @@ public class ByteTag : NumericTag<byte>
             IsBool = true;
         }
     }
-        
+
     /// <summary>
     /// Creates a new instance of the <see cref="ByteTag"/> class with the specified <paramref name="value"/>.
     /// </summary>
     /// <param name="name">The name of the tag, or <see langword="null"/> if tag has no name.</param>
     /// <param name="value">The value to assign to this tag.</param>
-    public ByteTag(string? name, byte value) : base(TagType.Byte, name, value)
-    {
-    }
-    
+    public ByteTag(string? name, byte value)
+        : base(TagType.Byte, name, value) { }
+
     /// <inheritdoc cref="ByteTag(string,byte)"/>
     /// <remarks>The use of <see cref="int"/> is for convenience only.</remarks>
-    public ByteTag(string? name, int value) : base(TagType.Byte, name, unchecked((byte) (value & 0xFF)))
-    {
-    }
-    
+    public ByteTag(string? name, int value)
+        : base(TagType.Byte, name, unchecked((byte)(value & 0xFF))) { }
+
     /// <inheritdoc cref="ByteTag(string,byte)"/>
-    public ByteTag(string? name, bool value) : base(TagType.Byte, name, value ? (byte) 1 : (byte) 0)
-    {
-    }
-        
+    public ByteTag(string? name, bool value)
+        : base(TagType.Byte, name, value ? (byte)1 : (byte)0) { }
+
     /// <inheritdoc cref="ByteTag(string,byte)"/>
     [CLSCompliant(false)]
-    public ByteTag(string? name, sbyte value) : base(TagType.Byte, name, unchecked((byte) value))
-    {
-    }
+    public ByteTag(string? name, sbyte value)
+        : base(TagType.Byte, name, unchecked((byte)value)) { }
 
     /// <inheritdoc cref="object.ToString"/>
     public override string ToString()
@@ -93,7 +90,20 @@ public class ByteTag : NumericTag<byte>
         object obj = IsBool ? Bool : Value;
         return $"TAG_Byte({PrettyName}): {obj}";
     }
-    
+
+    public override string ToWarppedString()
+    {
+        object str;
+        if (IsBool)
+            if (Bool)
+                str = "true";
+            else
+                str = "false";
+        else
+            str = Value + "b";
+        return $"{WarpedName}: {str}";
+    }
+
     /// <inheritdoc />
     protected internal override void WriteJson(Utf8JsonWriter writer, bool named = true)
     {
@@ -109,21 +119,21 @@ public class ByteTag : NumericTag<byte>
             writer.WriteNumberValue(Value);
         }
     }
-        
+
     /// <summary>
     /// Implicit conversion of this tag to a <see cref="byte"/>.
     /// </summary>
     /// <param name="tag">The tag to convert.</param>
     /// <returns>The tag represented as a <see cref="byte"/>.</returns>
     public static implicit operator byte(ByteTag tag) => tag.Value;
-    
+
     /// <summary>
     /// Implicit conversion of this tag to a <see cref="bool"/>.
     /// </summary>
     /// <param name="tag">The tag to convert.</param>
     /// <returns>The tag represented as a <see cref="byte"/>.</returns>
     public static implicit operator bool(ByteTag tag) => tag.Bool;
-        
+
     /// <summary>
     /// Implicit conversion of this tag to a <see cref="sbyte"/>.
     /// </summary>
@@ -133,5 +143,6 @@ public class ByteTag : NumericTag<byte>
     public static implicit operator sbyte(ByteTag tag) => unchecked((sbyte)tag.Value);
 
     /// <inheritdoc />
-    public override string Stringify(bool named = true) => named ? $"{StringifyName}:{Value}B" : $"{Value}B"; 
+    public override string Stringify(bool named = true) =>
+        named ? $"{StringifyName}:{Value}B" : $"{Value}B";
 }

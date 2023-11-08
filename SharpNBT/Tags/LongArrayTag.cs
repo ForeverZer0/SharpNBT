@@ -68,8 +68,13 @@ public class LongArrayTag : ArrayTag<long>
     public override string ToString()
     {
         var word = Count == 1 ? Strings.WordElement : Strings.WordElements;
-        return $"TAG_Long_Array({PrettyName}): [{Count} {word}]";
+        return $"TAG_Long_Array({WarpedName}): [{Count} {word}]";
     }
+    //public override string ToWarppedString()
+    //{
+    //    var word = Count == 1 ? Strings.WordElement : Strings.WordElements;
+    //    return $"[{Count} {word}]";
+    //}
 
     /// <inheritdoc />
     public override string Stringify(bool named = true) => Stringify(named, 'L', 'l');
