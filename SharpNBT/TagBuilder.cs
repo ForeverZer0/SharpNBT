@@ -437,7 +437,6 @@ public class TagBuilder
         /// <summary>Closes this context.</summary>
         public void Dispose()
         {
-            Console.WriteLine(Tag);
             closeHandler.Invoke();
         }
     }
