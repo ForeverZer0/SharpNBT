@@ -175,8 +175,8 @@ public static class NbtFile
         return compression switch
         {
             CompressionType.None => stream,
-            CompressionType.GZip => new GZipStream(stream, CompressionMode.Decompress, false),
-            CompressionType.ZLib => new ZLibStream(stream, CompressionMode.Decompress),
+            CompressionType.GZip => new BufferedStream(new GZipStream(stream, CompressionMode.Decompress, false)),
+            CompressionType.ZLib => new BufferedStream(new ZLibStream(stream, CompressionMode.Decompress)),
             _ => throw new ArgumentOutOfRangeException(nameof(compression), compression, null)
         };
     }
