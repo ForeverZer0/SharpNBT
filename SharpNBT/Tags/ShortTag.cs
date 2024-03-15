@@ -59,7 +59,8 @@ public class ShortTag : NumericTag<short>
         
     /// <inheritdoc cref="object.ToString"/>
     public override string ToString() => $"TAG_Short({PrettyName}): {Value}";
-        
+    public override string ToWarppedString() => $"{WarpedName}: {Value}s";
+
     /// <summary>
     /// Implicit conversion of this tag to a <see cref="short"/>.
     /// </summary>

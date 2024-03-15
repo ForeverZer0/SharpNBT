@@ -10,32 +10,34 @@ using JetBrains.Annotations;
 namespace SharpNBT;
 
 /// <summary>
-/// Top-level tag that acts as a container for other <b>named</b> tags. 
+/// Top-level tag that acts as a container for other <b>named</b> tags.
 /// </summary>
 /// <remarks>
 /// This along with the <see cref="ListTag"/> class define the structure of the NBT format. Children are not order-dependent, nor is order guaranteed. The
-/// closing <see cref="EndTag"/> does not require to be explicitly added, it will be added automatically during serialization. 
+/// closing <see cref="EndTag"/> does not require to be explicitly added, it will be added automatically during serialization.
 /// </remarks>
 [PublicAPI]
 public class CompoundTag : Tag, IDictionary<string, Tag>, ICollection<Tag>
 {
     private readonly Dictionary<string, Tag> dict;
-    
+
     /// <summary>
     /// Creates a new instance of the <see cref="CompoundTag"/> class.
     /// </summary>
     /// <param name="name">The name of the tag, or <see langword="null"/> if tag has no name.</param>
-    public CompoundTag(string? name) : base(TagType.Compound, name)
+    public CompoundTag(string? name)
+        : base(TagType.Compound, name)
     {
         dict = new Dictionary<string, Tag>();
     }
-        
+
     /// <summary>
     /// Creates a new instance of the <see cref="CompoundTag"/> class.
     /// </summary>
     /// <param name="name">The name of the tag, or <see langword="null"/> if tag has no name.</param>
     /// <param name="values">A collection <see cref="Tag"/> objects that are children of this object.</param>
-    public CompoundTag(string? name, IEnumerable<Tag> values) : this(name)
+    public CompoundTag(string? name, IEnumerable<Tag> values)
+        : this(name)
     {
         foreach (var value in values)
         {
@@ -44,21 +46,26 @@ public class CompoundTag : Tag, IDictionary<string, Tag>, ICollection<Tag>
     }
 
     /// <inheritdoc />
-    void ICollection<KeyValuePair<string, Tag>>.Add(KeyValuePair<string, Tag> item) => Add(item.Value);
+    void ICollection<KeyValuePair<string, Tag>>.Add(KeyValuePair<string, Tag> item) =>
+        Add(item.Value);
 
     /// <inheritdoc />
-    bool ICollection<KeyValuePair<string, Tag>>.Contains(KeyValuePair<string, Tag> item) => dict.Contains(item);
-    
+    bool ICollection<KeyValuePair<string, Tag>>.Contains(KeyValuePair<string, Tag> item) =>
+        dict.Contains(item);
+
     /// <inheritdoc />
-    void ICollection<KeyValuePair<string, Tag>>.CopyTo(KeyValuePair<string, Tag>[] array, int arrayIndex)
+    void ICollection<KeyValuePair<string, Tag>>.CopyTo(
+        KeyValuePair<string, Tag>[] array,
+        int arrayIndex
+    )
     {
         foreach (var kvp in dict)
             array[arrayIndex++] = kvp;
     }
-    
+
     /// <inheritdoc />
     bool ICollection<KeyValuePair<string, Tag>>.IsReadOnly => false;
-    
+
     /// <inheritdoc />
     bool ICollection<Tag>.IsReadOnly => false;
 
@@ -80,29 +87,30 @@ public class CompoundTag : Tag, IDictionary<string, Tag>, ICollection<Tag>
             child.Parent = null;
         dict.Clear();
     }
-    
+
     /// <inheritdoc cref="ICollection{T}.Clear"/>
     public int Count => dict.Count;
-    
+
     /// <inheritdoc />
-    IEnumerator<KeyValuePair<string, Tag>> IEnumerable<KeyValuePair<string, Tag>>.GetEnumerator() => dict.GetEnumerator();
+    IEnumerator<KeyValuePair<string, Tag>> IEnumerable<KeyValuePair<string, Tag>>.GetEnumerator() =>
+        dict.GetEnumerator();
 
     /// <inheritdoc />
     IEnumerator IEnumerable.GetEnumerator() => dict.GetEnumerator();
 
     /// <inheritdoc />
     public IEnumerator<Tag> GetEnumerator() => dict.Values.GetEnumerator();
-    
+
     /// <inheritdoc />
     public void CopyTo(Tag[] array, int arrayIndex)
     {
         foreach (var value in dict.Values)
             array[arrayIndex++] = value;
     }
-    
+
     /// <inheritdoc />
     public void Add(string key, Tag value) => dict.Add(key, ValidateChild(value));
-    
+
     /// <inheritdoc cref="ICollection{T}.Add"/>
     public void Add(Tag value) => dict.Add(value.Name!, ValidateChild(value));
 
@@ -136,7 +144,8 @@ public class CompoundTag : Tag, IDictionary<string, Tag>, ICollection<Tag>
     public bool TryGetValue(string key, out Tag value) => dict.TryGetValue(key, out value!);
 
     /// <inheritdoc cref="TryGetValue"/>
-    public bool TryGetValue<TTag>(string key, out TTag value) where TTag : Tag
+    public bool TryGetValue<TTag>(string key, out TTag value)
+        where TTag : Tag
     {
         if (dict.TryGetValue(key, out var tag) && tag is TTag result)
         {
@@ -147,13 +156,13 @@ public class CompoundTag : Tag, IDictionary<string, Tag>, ICollection<Tag>
         value = null!;
         return false;
     }
-    
+
     /// <inheritdoc />
     public ICollection<string> Keys => dict.Keys;
 
     /// <inheritdoc />
     public ICollection<Tag> Values => dict.Values;
-    
+
     /// <inheritdoc />
     public Tag this[string name]
     {
@@ -161,11 +170,12 @@ public class CompoundTag : Tag, IDictionary<string, Tag>, ICollection<Tag>
         set => dict[name] = ValidateChild(value);
     }
 
-    public TTag Get<TTag>(string name) where TTag : Tag
+    public TTag Get<TTag>(string name)
+        where TTag : Tag
     {
         return (TTag)dict[name];
     }
-    
+
     /// <inheritdoc />
     protected internal override void WriteJson(Utf8JsonWriter writer, bool named = true)
     {
@@ -182,7 +192,7 @@ public class CompoundTag : Tag, IDictionary<string, Tag>, ICollection<Tag>
             child.WriteJson(writer, true);
         writer.WriteEndObject();
     }
-    
+
     /// <summary>Returns a string that represents the current object.</summary>
     /// <returns>A string that represents the current object.</returns>
     /// <footer><a href="https://docs.microsoft.com/en-us/dotnet/api/System.Object.ToString?view=netcore-5.0">`Object.ToString` on docs.microsoft.com</a></footer>
@@ -210,7 +220,8 @@ public class CompoundTag : Tag, IDictionary<string, Tag>, ICollection<Tag>
     /// <param name="name">The name of the tag to search for.</param>
     /// <param name="recursive"><see langword="true"/> to recursively search children, otherwise <see langword="false"/> to only search direct descendants.</param>
     /// <returns>The first tag found with <paramref name="name"/>, otherwise <see langword="null"/> if none was found.</returns>
-    public TTag? Find<TTag>(string name, bool recursive = false) where TTag : Tag
+    public TTag? Find<TTag>(string name, bool recursive = false)
+        where TTag : Tag
     {
         foreach (var (key, value) in dict)
         {
@@ -234,7 +245,7 @@ public class CompoundTag : Tag, IDictionary<string, Tag>, ICollection<Tag>
         var space = new StringBuilder();
         for (var i = 0; i < level; i++)
             space.Append(indent);
-            
+
         buffer.AppendLine(space + ToString());
         buffer.AppendLine(space + "{");
         foreach (var tag in dict.Values)
@@ -281,5 +292,29 @@ public class CompoundTag : Tag, IDictionary<string, Tag>, ICollection<Tag>
             throw new FormatException(Strings.ChildrenMustBeNamed);
         tag.Parent = this;
         return tag;
+    }
+
+    public string ToWarppedString(string indent = "\t")
+    {
+        var buffer = new StringBuilder();
+
+        WarppedPrinted(buffer, 0, indent ?? string.Empty);
+        return buffer.ToString();
+    }
+
+    protected internal override void WarppedPrinted(StringBuilder buffer, int level, string indent)
+    {
+        var space = new StringBuilder();
+        for (var i = 0; i < level; i++)
+            space.Append(indent);
+
+        if (String.IsNullOrWhiteSpace(Name))
+            buffer.AppendLine($"{space}");
+        else
+            buffer.AppendLine(space + Name + ":");
+        buffer.AppendLine(space + "{");
+        foreach (var tag in dict.Values)
+            tag.WarppedPrinted(buffer, level + 1, indent);
+        buffer.AppendLine(space + "}");
     }
 }

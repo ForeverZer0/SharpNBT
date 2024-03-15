@@ -143,7 +143,14 @@ public class ListTag : Tag, IList<Tag>
         var word = Count == 1 ? Strings.WordEntry : Strings.WordEntries;
         return $"TAG_List({PrettyName}): [{Count} {word}]";
     }
-    
+    public override string ToWarppedString()
+    {
+        var word = Count == 1 ? Strings.WordEntry : Strings.WordEntries;
+        return $"{WarpedName}: ";
+    }
+
+
+
     /// <inheritdoc cref="Tag.PrettyPrinted(StringBuilder,int,string)"/>
     protected internal override void PrettyPrinted(StringBuilder buffer, int level, string indent)
     {
@@ -157,6 +164,18 @@ public class ListTag : Tag, IList<Tag>
             tag.PrettyPrinted(buffer, level + 1, indent);
         buffer.AppendLine(space + "}");
     }
+    protected internal override void WarppedPrinted(StringBuilder buffer, int level, string indent)
+    {
+        var space = new StringBuilder();
+        for (var i = 0; i < level; i++)
+            space.Append(indent);
+
+        buffer.AppendLine(space + ToWarppedString());
+        buffer.AppendLine(space + "[");
+        foreach (var tag in this)
+            tag.WarppedPrinted(buffer, level + 1, indent);
+        buffer.AppendLine(space + "]");
+    }
 
     /// <summary>
     /// Retrieves a "pretty-printed" multiline string representing the complete tree structure of the tag.
@@ -169,6 +188,7 @@ public class ListTag : Tag, IList<Tag>
         PrettyPrinted(buffer, 0, indent);
         return buffer.ToString();
     }
+    //public string WarppedPrinted
 
     /// <summary>
     /// Gets the <i>string</i> representation of this NBT tag (SNBT).

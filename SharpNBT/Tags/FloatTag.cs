@@ -33,7 +33,8 @@ public class FloatTag : NumericTag<float>
         
     /// <inheritdoc cref="object.ToString"/>
     public override string ToString() => $"TAG_Float({PrettyName}): {Value:0.0}";
-        
+    public override string ToWarppedString() => $"{WarpedName}: {Value}f";
+
     /// <summary>
     /// Implicit conversion of this tag to a <see cref="float"/>.
     /// </summary>

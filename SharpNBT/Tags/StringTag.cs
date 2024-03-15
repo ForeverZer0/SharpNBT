@@ -40,6 +40,7 @@ public class StringTag : Tag, IEquatable<StringTag>
     
     /// <inheritdoc cref="object.ToString"/>
     public override string ToString() => $"TAG_String({PrettyName}): \"{Value}\"";
+    public override string ToWarppedString() => $"{WarpedName}: \"{Value}\"";
 
     /// <summary>
     /// Implicit conversion of this tag to a <see cref="string"/>.
