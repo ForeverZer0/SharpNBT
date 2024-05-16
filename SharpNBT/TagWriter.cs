@@ -306,7 +306,7 @@ public class TagWriter : TagIO
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private void WriteTypeAndName(Tag tag)
     {
-        if (tag.Parent is ListTag || string.IsNullOrEmpty(tag.Name))
+        if (tag.Parent is ListTag)
             return;
 
         BaseStream.WriteByte((byte) tag.Type);
