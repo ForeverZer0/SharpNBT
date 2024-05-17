@@ -309,6 +309,9 @@ public class TagWriter : TagIO
         if (tag.Parent is ListTag)
             return;
 
+        if (string.IsNullOrEmpty(tag.Name) && !(tag is CompoundTag && tag.Parent is null))
+            return;
+
         BaseStream.WriteByte((byte) tag.Type);
         WriteUTF8String(tag.Name);
     }
