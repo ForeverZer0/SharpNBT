@@ -53,7 +53,8 @@ public class LongTag : NumericTag<long>
         
     /// <inheritdoc cref="object.ToString"/>
     public override string ToString() => $"TAG_Long({PrettyName}): {Value}";
-        
+    public override string ToWarppedString() => $"{WarpedName}: {Value}L";
+
     /// <summary>
     /// Implicit conversion of this tag to a <see cref="long"/>.
     /// </summary>

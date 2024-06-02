@@ -49,6 +49,30 @@ internal ref struct Scanner
             goto ReadChar;
         return true;
     }
+    public bool SkipSpace()
+    {
+        while (Position < Source.Length)
+        {
+            if (Position >= Source.Length)
+            {
+                return false;
+            }
+            if (Current == ' ') Position++;
+        }
+        return true;
+    }
+    public bool SkipWarp()
+    {
+        while (Position < Source.Length)
+        {
+            if (Position >= Source.Length)
+            {
+                return false;
+            }
+            if ("\t\n\r".Contains(Current)) Position++;
+        }
+        return true;
+    }
 
     public void AssertChar(char c)
     {

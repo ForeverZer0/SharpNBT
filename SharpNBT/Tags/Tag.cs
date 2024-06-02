@@ -62,7 +62,16 @@ public abstract class Tag : IEquatable<Tag>, ICloneable
             buffer.Append(indent);
         buffer.AppendLine(ToString());
     }
-    
+
+    protected internal virtual void WarppedPrinted(StringBuilder buffer, int level, string indent)
+    {
+        for (var i = 0; i < level; i++)
+            buffer.Append(indent);
+        buffer.AppendLine(ToWarppedString());
+    }
+    public virtual string ToWarppedString() => "";
+    protected internal string WarpedName => Name is null ? "" : $"{Name}";
+
     /// <summary>
     /// Gets the name of the object as a human-readable quoted string, or a default name to indicate it has no name when applicable.
     /// </summary>
